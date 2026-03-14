@@ -1,4 +1,4 @@
-import path from "node:path";
+﻿import path from "node:path";
 
 const DEFAULT_BOARDS = {
   recipes_en: "Recipes",
@@ -27,6 +27,10 @@ export function loadConfig() {
     assetsDir: path.resolve(process.env.ASSETS_DIR?.trim() || "data/assets"),
     exportsDir: path.resolve(process.env.EXPORTS_DIR?.trim() || "data/exports"),
     statePath: path.resolve(process.env.STATE_PATH?.trim() || "data/state.json"),
+    backfillPostsPerRun: numberFromEnv("BACKFILL_POSTS_PER_RUN", 12),
+    backfillMaxPages: numberFromEnv("BACKFILL_MAX_PAGES", 10),
+    backfillStartDelayHours: numberFromEnv("BACKFILL_START_DELAY_HOURS", 24),
+    backfillPostIntervalHours: numberFromEnv("BACKFILL_POST_INTERVAL_HOURS", 24),
     queueSpacingDays: {
       first: numberFromEnv("PIN_DAY_1", 0),
       second: numberFromEnv("PIN_DAY_2", 2),
@@ -59,3 +63,4 @@ function numberFromEnv(name, fallback) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
+

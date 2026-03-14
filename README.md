@@ -1,4 +1,4 @@
-# Pinterest Autopilot for WordPress
+﻿# Pinterest Autopilot for WordPress
 
 This is a standalone Pinterest automation app for `el-mordjene.info`.
 It stays completely separate from the El-Mordjene Alerts App.
@@ -47,11 +47,13 @@ This app is intentionally separate from article generation.
 
 1. `npm run discover`
    Imports recent posts from WordPress and queues 3 pins for each eligible post.
-2. `npm run render`
+2. `npm run backfill`
+   Finds older untracked published posts and schedules them gradually for a safe backlog catch-up.
+3. `npm run render`
    Resolves a visual source for each queued pin and renders Pinterest graphics into `data/assets`.
-3. `npm run publish`
+4. `npm run publish`
    Uploads due rendered images to WordPress, injects the 3-pin gallery into the source post, and exports a CSV and JSON batch into `data/exports`.
-4. `npm run status`
+5. `npm run status`
    Prints the current state summary.
 
 ## Board mapping
@@ -106,6 +108,10 @@ Copy `.env.example` into your runtime secret setup and provide:
 - `IMAGE_SOURCE_MODE` optional
 - `POSTS_PER_RUN`
 - `LOOKBACK_HOURS`
+- `BACKFILL_POSTS_PER_RUN`
+- `BACKFILL_MAX_PAGES`
+- `BACKFILL_START_DELAY_HOURS`
+- `BACKFILL_POST_INTERVAL_HOURS`
 - `RENDER_BATCH_SIZE`
 - `PUBLISH_BATCH_SIZE`
 - `PIN_DAY_1`
@@ -122,7 +128,19 @@ The included workflow does three things every run:
 - renders pending pin assets
 - uploads and injects due assets into posts
 
+## Safe backfill strategy
+
+Use `npm run backfill` for older posts you want to catch up on without spamming Pinterest.
+
+- it only targets older posts that are not already tracked in `data/state.json`
+- it will not recreate existing asset ids or queue items if you rerun it
+- it starts scheduling in the future using `BACKFILL_START_DELAY_HOURS`
+- it spaces each backfilled post using `BACKFILL_POST_INTERVAL_HOURS`
+
+With the defaults, the app begins backfilled publishing 24 hours later and only introduces one new backfilled post every 24 hours.
+
 ## Notes
 
 This is now aligned with the strongest official Pinterest automation route.
 For image quality, free stock plus strong text overlays is more reliable than depending on free AI image generation every day.
+

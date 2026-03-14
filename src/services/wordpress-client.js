@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+ï»¿import fs from "node:fs/promises";
 import { stripHtml } from "../lib/text.js";
 
 const GALLERY_MARKER = "<!-- pinterest-gallery -->";
@@ -15,8 +15,13 @@ const ENGLISH_FUNCTION_WORDS = [
 export function createWordPressClient(config) {
   return {
     async fetchRecentPosts() {
+      return this.fetchPostsPage(1, Math.max(config.postsPerRun * 4, 12));
+    },
+
+    async fetchPostsPage(page, perPage) {
       const endpoint = new URL("/wp-json/wp/v2/posts", config.siteUrl);
-      endpoint.searchParams.set("per_page", String(Math.max(config.postsPerRun * 4, 12)));
+      endpoint.searchParams.set("per_page", String(perPage));
+      endpoint.searchParams.set("page", String(page));
       endpoint.searchParams.set("orderby", "date");
       endpoint.searchParams.set("order", "desc");
       endpoint.searchParams.set("_embed", "1");
@@ -208,7 +213,7 @@ function inferLanguage(post, categories, title, excerpt, contentHtml) {
     }
   }
 
-  if (/[éèêàùçôî]/i.test(`${title} ${excerpt}`)) {
+  if (/[Ã©Ã¨ÃªÃ Ã¹Ã§Ã´Ã®]/i.test(`${title} ${excerpt}`)) {
     frenchScore += 2;
   }
 

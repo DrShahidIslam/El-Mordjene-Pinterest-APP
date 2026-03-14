@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/index.js discover",
     "discover": "node src/index.js discover",
+    "backfill": "node src/index.js backfill",
     "render": "node src/index.js render",
     "publish": "node src/index.js publish",
     "plan-feeds": "node src/index.js plan-feeds",

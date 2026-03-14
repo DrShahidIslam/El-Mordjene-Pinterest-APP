@@ -1,4 +1,4 @@
-import {
+﻿import {
   buildKeywordSet,
   clampText,
   extractHeadingsFromHtml,
@@ -7,7 +7,7 @@ import {
   pickPrimaryKeyword
 } from "../lib/text.js";
 
-export function buildPinPlan(post, classification, config) {
+export function buildPinPlan(post, classification, config, options = {}) {
   const headings = extractHeadingsFromHtml(post.contentHtml);
   const listItems = extractListItemsFromHtml(post.contentHtml);
   const sentences = extractSentences(`${post.excerpt} ${post.contentHtml}`);
@@ -54,7 +54,7 @@ export function buildPinPlan(post, classification, config) {
     ...variant,
     boardKey: classification.boardKey,
     boardName: classification.boardName,
-    scheduledFor: scheduleDate(post.date, index, config),
+    scheduledFor: scheduleDate(options.scheduleAnchorDate || post.date, index, config),
     sourcePostId: post.id
   }));
 }
@@ -144,3 +144,4 @@ function scheduleDate(postDate, index, config) {
   date.setUTCDate(date.getUTCDate() + (offsets[index] || 0));
   return date.toISOString();
 }
+

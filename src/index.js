@@ -1,7 +1,8 @@
-import { loadConfig } from "./lib/config.js";
+﻿import { loadConfig } from "./lib/config.js";
 import { createStateStore } from "./lib/state-store.js";
 import { createWordPressClient } from "./services/wordpress-client.js";
 import { buildFeedPlan } from "./services/feed-planner.js";
+import { backfillPosts } from "./workflows/backfill-posts.js";
 import { discoverPosts } from "./workflows/discover-posts.js";
 import { renderPendingAssets } from "./workflows/render-assets.js";
 import { publishDueQueue } from "./workflows/publish-queue.js";
@@ -16,6 +17,11 @@ async function main() {
 
   if (command === "discover") {
     await discoverPosts({ config, state, wordpress });
+    return;
+  }
+
+  if (command === "backfill") {
+    await backfillPosts({ config, state, wordpress });
     return;
   }
 

@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+﻿import fs from "node:fs/promises";
 import path from "node:path";
 
 export async function createStateStore(config) {
@@ -15,6 +15,12 @@ export async function createStateStore(config) {
     },
     hasPost(postId) {
       return Boolean(this.state.posts[String(postId)]);
+    },
+    hasAsset(assetId) {
+      return Boolean(this.state.assets[String(assetId)]);
+    },
+    hasQueueItem(queueId) {
+      return Boolean(this.state.queue[String(queueId)]);
     },
     addPost(record) {
       this.state.posts[String(record.postId)] = record;
