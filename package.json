@@ -1,0 +1,22 @@
+{
+  "name": "el-mordjene-pinterest-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone Pinterest automation app for el-mordjene.info.",
+  "scripts": {
+    "start": "node src/index.js discover",
+    "discover": "node src/index.js discover",
+    "render": "node src/index.js render",
+    "publish": "node src/index.js publish",
+    "plan-feeds": "node src/index.js plan-feeds",
+    "reclassify": "node src/index.js reclassify",
+    "status": "node src/index.js status"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "sharp": "^0.34.4"
+  }
+}

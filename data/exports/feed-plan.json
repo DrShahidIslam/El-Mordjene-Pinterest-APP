@@ -1,0 +1,162 @@
+{
+  "generatedAt": "2026-03-14T07:26:20.108Z",
+  "feedPlan": [
+    {
+      "board": "Recipes",
+      "purpose": "English recipes",
+      "primaryFeed": {
+        "categoryId": 36,
+        "categoryName": "Recipes",
+        "categorySlug": "recipes",
+        "categoryCount": 35,
+        "feedUrl": "https://el-mordjene.info/category/recipes/feed/"
+      },
+      "secondaryFeed": null,
+      "ready": true
+    },
+    {
+      "board": "Recettes",
+      "purpose": "French recipes",
+      "primaryFeed": {
+        "categoryId": 38,
+        "categoryName": "Recettes",
+        "categorySlug": "recettes",
+        "categoryCount": 4,
+        "feedUrl": "https://el-mordjene.info/category/recettes/feed/"
+      },
+      "secondaryFeed": null,
+      "ready": true
+    },
+    {
+      "board": "Spreads",
+      "purpose": "English spreads",
+      "primaryFeed": {
+        "categoryId": 56,
+        "categoryName": "Spreads",
+        "categorySlug": "spreads",
+        "categoryCount": 2,
+        "feedUrl": "https://el-mordjene.info/category/spreads/feed/"
+      },
+      "secondaryFeed": null,
+      "ready": true
+    },
+    {
+      "board": "Pates a tartiner",
+      "purpose": "French spreads",
+      "primaryFeed": {
+        "categoryId": 195,
+        "categoryName": "Pâtes à tartiner",
+        "categorySlug": "pates-a-tartiner",
+        "categoryCount": 0,
+        "feedUrl": "https://el-mordjene.info/category/pates-a-tartiner/feed/"
+      },
+      "secondaryFeed": null,
+      "ready": true
+    },
+    {
+      "board": "Sweets & Trends",
+      "purpose": "Sweets and trends",
+      "primaryFeed": {
+        "categoryId": 426,
+        "categoryName": "Trends",
+        "categorySlug": "trends",
+        "categoryCount": 13,
+        "feedUrl": "https://el-mordjene.info/category/trends/feed/"
+      },
+      "secondaryFeed": {
+        "categoryId": 434,
+        "categoryName": "Sweets",
+        "categorySlug": "sweets",
+        "categoryCount": 1,
+        "feedUrl": "https://el-mordjene.info/category/sweets/feed/"
+      },
+      "ready": true
+    }
+  ],
+  "categories": [
+    {
+      "id": 36,
+      "name": "Recipes",
+      "slug": "recipes",
+      "count": 35,
+      "feedUrl": "https://el-mordjene.info/category/recipes/feed/"
+    },
+    {
+      "id": 426,
+      "name": "Trends",
+      "slug": "trends",
+      "count": 13,
+      "feedUrl": "https://el-mordjene.info/category/trends/feed/"
+    },
+    {
+      "id": 105,
+      "name": "El-Mordjene",
+      "slug": "el-mordjene-exclusive",
+      "count": 9,
+      "feedUrl": "https://el-mordjene.info/category/el-mordjene-exclusive/feed/"
+    },
+    {
+      "id": 117,
+      "name": "El-Mordjene",
+      "slug": "el-mordjene-exclusive-fr",
+      "count": 8,
+      "feedUrl": "https://el-mordjene.info/category/el-mordjene-exclusive-fr/feed/"
+    },
+    {
+      "id": 243,
+      "name": "Food News",
+      "slug": "food-news",
+      "count": 7,
+      "feedUrl": "https://el-mordjene.info/category/food-news/feed/"
+    },
+    {
+      "id": 38,
+      "name": "Recettes",
+      "slug": "recettes",
+      "count": 4,
+      "feedUrl": "https://el-mordjene.info/category/recettes/feed/"
+    },
+    {
+      "id": 255,
+      "name": "Food News",
+      "slug": "food-news-fr",
+      "count": 3,
+      "feedUrl": "https://el-mordjene.info/category/food-news-fr/feed/"
+    },
+    {
+      "id": 56,
+      "name": "Spreads",
+      "slug": "spreads",
+      "count": 2,
+      "feedUrl": "https://el-mordjene.info/category/spreads/feed/"
+    },
+    {
+      "id": 434,
+      "name": "Sweets",
+      "slug": "sweets",
+      "count": 1,
+      "feedUrl": "https://el-mordjene.info/category/sweets/feed/"
+    },
+    {
+      "id": 195,
+      "name": "Pâtes à tartiner",
+      "slug": "pates-a-tartiner",
+      "count": 0,
+      "feedUrl": "https://el-mordjene.info/category/pates-a-tartiner/feed/"
+    },
+    {
+      "id": 9,
+      "name": "Uncategorized",
+      "slug": "uncategorized-fr",
+      "count": 0,
+      "feedUrl": "https://el-mordjene.info/category/uncategorized-fr/feed/"
+    },
+    {
+      "id": 1,
+      "name": "Uncategorized",
+      "slug": "uncategorized",
+      "count": 0,
+      "feedUrl": "https://el-mordjene.info/category/uncategorized/feed/"
+    }
+  ]
+}
