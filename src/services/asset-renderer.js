@@ -40,51 +40,139 @@ export async function renderAsset(asset, config) {
   const theme = THEMES[asset.contentType] || THEMES.trend;
   const fileName = `${asset.postSlug}-${asset.variant}.png`;
   const outputPath = path.join(config.assetsDir, fileName);
+  const base = sharp({
+    create: {
+      width: 1000,
+      height: 1500,
+      channels: 4,
+      background: theme.background[0]
+    }
+  });
+
+  const composites = [];
+  const featuredImageBuffer = await loadFeaturedImage(asset.featuredImage);
+
+  if (featuredImageBuffer) {
+    composites.push({
+      input: await sharp(featuredImageBuffer)
+        .resize(1000, 1500, { fit: "cover", position: "attention" })
+        .blur(2)
+        .modulate({ saturation: 1.05, brightness: 0.95 })
+        .png()
+        .toBuffer(),
+      top: 0,
+      left: 0
+    });
+
+    composites.push({
+      input: Buffer.from(`<svg width="1000" height="1500" xmlns="http://www.w3.org/2000/svg"><rect width="1000" height="1500" fill="rgba(42,25,16,0.32)"/></svg>`),
+      top: 0,
+      left: 0
+    });
+
+    composites.push({
+      input: await sharp(featuredImageBuffer)
+        .resize(840, 640, { fit: "cover", position: "attention" })
+        .modulate({ saturation: 1.08, brightness: 1.02 })
+        .png()
+        .toBuffer(),
+      top: 108,
+      left: 80
+    });
+  } else {
+    composites.push({
+      input: Buffer.from(`<svg width="1000" height="1500" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${theme.background[0]}"/><stop offset="45%" stop-color="${theme.background[1]}"/><stop offset="100%" stop-color="${theme.background[2]}"/></linearGradient></defs><rect width="1000" height="1500" fill="url(#bg)"/></svg>`),
+      top: 0,
+      left: 0
+    });
+  }
+
+  const svg = buildOverlaySvg(asset, theme, Boolean(featuredImageBuffer));
+  composites.push({ input: Buffer.from(svg), top: 0, left: 0 });
+
+  await fs.mkdir(config.assetsDir, { recursive: true });
+  await base.composite(composites).png().toFile(outputPath);
+  return outputPath;
+}
+
+function buildOverlaySvg(asset, theme, hasPhoto) {
   const titleLines = wrapText(asset.overlayTitle, 18, 4);
   const subtitleLines = wrapText(asset.overlaySubtitle, 28, 3);
+  const keywordLabel = wrapText(toDisplayCase(asset.primaryKeyword || asset.overlayTitle), 24, 2);
+  const footerTags = wrapText((asset.searchTags || []).slice(0, 3).join("  •  "), 54, 2);
+  const variantLabel = VARIANT_LABELS[asset.variant] || "Pinterest Pin";
 
   const titleSvg = titleLines
     .map((line, index) => {
-      const y = 280 + index * 90;
-      return `<text x="108" y="${y}" font-size="74" font-family="Georgia, serif" fill="#fff8f1" font-weight="700">${escapeHtml(line)}</text>`;
+      const y = hasPhoto ? 870 + index * 86 : 330 + index * 90;
+      const fill = hasPhoto ? theme.hero : "#fff8f1";
+      return `<text x="100" y="${y}" font-size="72" font-family="Georgia, serif" fill="${fill}" font-weight="700">${escapeHtml(line)}</text>`;
     })
     .join("");
 
   const subtitleSvg = subtitleLines
     .map((line, index) => {
-      const y = 860 + index * 58;
-      return `<text x="108" y="${y}" font-size="46" font-family="Arial, sans-serif" fill="${theme.panelText}" font-weight="700">${escapeHtml(line)}</text>`;
+      const y = 1160 + index * 52;
+      return `<text x="110" y="${y}" font-size="42" font-family="Arial, sans-serif" fill="${theme.panelText}" font-weight="700">${escapeHtml(line)}</text>`;
     })
     .join("");
 
-  const svg = `
+  const keywordSvg = keywordLabel
+    .map((line, index) => `<text x="130" y="${160 + index * 34}" font-size="28" font-family="Arial, sans-serif" fill="#fff7ef" font-weight="700">${escapeHtml(line)}</text>`)
+    .join("");
+
+  const tagSvg = footerTags
+    .map((line, index) => `<text x="110" y="${1412 + index * 28}" font-size="22" font-family="Arial, sans-serif" fill="#896756">${escapeHtml(line)}</text>`)
+    .join("");
+
+  return `
     <svg width="1000" height="1500" viewBox="0 0 1000 1500" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="${theme.background[0]}"/>
-          <stop offset="45%" stop-color="${theme.background[1]}"/>
-          <stop offset="100%" stop-color="${theme.background[2]}"/>
-        </linearGradient>
-      </defs>
-      <rect width="1000" height="1500" fill="url(#bg)"/>
-      <rect x="48" y="48" width="904" height="1404" rx="34" fill="#fffaf5" opacity="0.95"/>
-      <rect x="86" y="86" width="828" height="628" rx="34" fill="${theme.hero}"/>
-      <circle cx="770" cy="220" r="170" fill="#ffffff" opacity="0.10"/>
-      <circle cx="250" cy="560" r="120" fill="#ffffff" opacity="0.08"/>
-      <rect x="108" y="124" width="270" height="58" rx="29" fill="#fff4ea" opacity="0.94"/>
-      <text x="243" y="162" text-anchor="middle" font-size="28" font-family="Arial, sans-serif" fill="${theme.hero}" font-weight="700">${escapeHtml(theme.badge)}</text>
-      <text x="892" y="162" text-anchor="end" font-size="26" font-family="Arial, sans-serif" fill="#fbe7d3" font-weight="700">${escapeHtml(VARIANT_LABELS[asset.variant] || "Pinterest Pin")}</text>
+      <rect x="48" y="48" width="904" height="1404" rx="36" fill="#fffaf5" opacity="0.96"/>
+      <rect x="80" y="80" width="840" height="640" rx="34" fill="${hasPhoto ? "rgba(255,250,245,0.04)" : theme.hero}"/>
+      ${hasPhoto ? `<rect x="80" y="80" width="840" height="640" rx="34" fill="rgba(64,32,18,0.22)"/>` : `<circle cx="770" cy="220" r="170" fill="#ffffff" opacity="0.10"/><circle cx="250" cy="560" r="120" fill="#ffffff" opacity="0.08"/>`}
+      <rect x="108" y="108" width="320" height="96" rx="28" fill="${theme.accent}" opacity="0.95"/>
+      ${keywordSvg}
+      <text x="890" y="128" text-anchor="end" font-size="24" font-family="Arial, sans-serif" fill="#fef1e5" font-weight="700">${escapeHtml(variantLabel)}</text>
+      <text x="890" y="158" text-anchor="end" font-size="24" font-family="Arial, sans-serif" fill="#f8ddca" font-weight="700">${escapeHtml(theme.badge)}</text>
+      <rect x="84" y="760" width="832" height="420" rx="34" fill="${theme.panel}" opacity="0.98"/>
+      <rect x="110" y="1088" width="780" height="156" rx="28" fill="#fff8f1" opacity="0.86"/>
       ${titleSvg}
-      <rect x="108" y="780" width="784" height="248" rx="30" fill="${theme.panel}"/>
       ${subtitleSvg}
-      <rect x="108" y="1164" width="784" height="118" rx="59" fill="${theme.accent}"/>
-      <text x="500" y="1237" text-anchor="middle" font-size="38" font-family="Arial, sans-serif" fill="#fff8f0" font-weight="700">Read more on el-mordjene.info</text>
-      <text x="108" y="1356" font-size="27" font-family="Arial, sans-serif" fill="#6f4d39">${escapeHtml(asset.boardName.toUpperCase())}</text>
-      <text x="108" y="1402" font-size="24" font-family="Arial, sans-serif" fill="#866452">${escapeHtml(asset.pinTitle)}</text>
+      <rect x="110" y="1288" width="780" height="88" rx="44" fill="${theme.accent}"/>
+      <text x="500" y="1343" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" fill="#fff8f0" font-weight="700">Read more on el-mordjene.info</text>
+      <text x="110" y="1380" font-size="26" font-family="Arial, sans-serif" fill="#6f4d39">${escapeHtml(asset.boardName.toUpperCase())}</text>
+      ${tagSvg}
     </svg>
   `;
+}
 
-  await fs.mkdir(config.assetsDir, { recursive: true });
-  await sharp(Buffer.from(svg)).png().toFile(outputPath);
-  return outputPath;
+async function loadFeaturedImage(url) {
+  if (!url) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+      }
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  } catch {
+    return null;
+  }
+}
+
+function toDisplayCase(value) {
+  return String(value || "")
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }

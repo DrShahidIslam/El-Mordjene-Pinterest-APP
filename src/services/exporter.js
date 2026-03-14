@@ -6,7 +6,7 @@ export async function exportPublishBatch(rows, config) {
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const csvPath = path.join(config.exportsDir, `pinterest-batch-${stamp}.csv`);
   const jsonPath = path.join(config.exportsDir, `pinterest-batch-${stamp}.json`);
-  const header = ["title", "description", "link", "board", "image_url", "scheduled_for"];
+  const header = ["title", "description", "link", "board", "image_url", "scheduled_for", "keywords"];
   const lines = [header.join(",")];
 
   for (const row of rows) {
@@ -16,7 +16,8 @@ export async function exportPublishBatch(rows, config) {
       csv(row.link),
       csv(row.board),
       csv(row.imageUrl),
-      csv(row.scheduledFor)
+      csv(row.scheduledFor),
+      csv((row.searchTags || []).join(" | "))
     ].join(","));
   }
 

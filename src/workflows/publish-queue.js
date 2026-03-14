@@ -32,7 +32,9 @@ export async function publishDueQueue({ config, state, wordpress }) {
       scheduledFor: item.scheduledFor,
       variant: asset.variant,
       contentType: asset.contentType,
-      language: asset.language
+      language: asset.language,
+      primaryKeyword: asset.primaryKeyword,
+      searchTags: asset.searchTags || []
     });
 
     if (!groupedByPost.has(asset.postId)) {

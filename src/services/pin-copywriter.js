@@ -10,17 +10,22 @@ export async function enrichVariantsWithCopy(post, classification, variants, con
       "You create Pinterest pin copy for a food and sweets website.",
       "Return valid JSON only.",
       "Return an object with a variants array of exactly 3 items.",
-      "Each item must have overlayTitle, overlaySubtitle, pinTitle, pinDescription.",
+      "Each item must have overlayTitle, overlaySubtitle, pinTitle, pinDescription, searchTags.",
+      "Make each variant meaningfully different and click-worthy.",
+      "Use the main keyword naturally in each overlayTitle and pinTitle.",
+      "Match the post accurately. Do not invent ingredients, steps, or claims.",
       "No hashtags.",
       "Overlay title max 56 characters.",
       "Overlay subtitle max 70 characters.",
       "Pin title max 100 characters.",
       "Pin description max 320 characters.",
+      "searchTags must be an array of 4 to 8 short keyword phrases.",
       `Post title: ${post.title}`,
       `Language: ${post.language}`,
       `Board: ${classification.boardName}`,
       `Content type: ${classification.contentType}`,
       `Excerpt: ${post.excerpt || "N/A"}`,
+      `Featured image available: ${post.featuredImage ? "yes" : "no"}`,
       `Existing variants: ${JSON.stringify(variants)}`
     ].join("\n");
 
@@ -32,7 +37,7 @@ export async function enrichVariantsWithCopy(post, classification, variants, con
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.7,
+            temperature: 0.85,
             responseMimeType: "application/json"
           }
         })
@@ -50,12 +55,14 @@ export async function enrichVariantsWithCopy(post, classification, variants, con
 
     return variants.map((variant, index) => {
       const item = generated[index] || {};
+      const tags = Array.isArray(item.searchTags) ? item.searchTags : variant.searchTags || [];
       return {
         ...variant,
         overlayTitle: clampText(item.overlayTitle || variant.overlayTitle, 56),
         overlaySubtitle: clampText(item.overlaySubtitle || variant.overlaySubtitle, 70),
         pinTitle: clampText(item.pinTitle || variant.pinTitle, 100),
-        pinDescription: clampText(item.pinDescription || variant.pinDescription, 320)
+        pinDescription: clampText(item.pinDescription || variant.pinDescription, 320),
+        searchTags: [...new Set(tags.map((value) => String(value || "").trim()).filter(Boolean))].slice(0, 8)
       };
     });
   } catch {
