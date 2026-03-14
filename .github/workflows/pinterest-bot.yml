@@ -26,7 +26,8 @@ jobs:
         run: npm install
 
       - name: Discover posts
-        env: &bot_env
+        run: npm run discover
+        env:
           SITE_URL: ${{ secrets.SITE_URL }}
           WP_USERNAME: ${{ secrets.WP_USERNAME }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
@@ -44,17 +45,51 @@ jobs:
           BOARD_SPREADS_EN: ${{ secrets.BOARD_SPREADS_EN }}
           BOARD_SPREADS_FR: ${{ secrets.BOARD_SPREADS_FR }}
           BOARD_SWEETS_TRENDS: ${{ secrets.BOARD_SWEETS_TRENDS }}
-        run: npm run discover
 
       - name: Render queued assets
-        env: *bot_env
         run: npm run render
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_TEXT_MODEL: ${{ secrets.GEMINI_TEXT_MODEL }}
+          POSTS_PER_RUN: ${{ secrets.POSTS_PER_RUN }}
+          LOOKBACK_HOURS: ${{ secrets.LOOKBACK_HOURS }}
+          RENDER_BATCH_SIZE: ${{ secrets.RENDER_BATCH_SIZE }}
+          PUBLISH_BATCH_SIZE: ${{ secrets.PUBLISH_BATCH_SIZE }}
+          PIN_DAY_1: ${{ secrets.PIN_DAY_1 }}
+          PIN_DAY_2: ${{ secrets.PIN_DAY_2 }}
+          PIN_DAY_3: ${{ secrets.PIN_DAY_3 }}
+          BOARD_RECIPES_EN: ${{ secrets.BOARD_RECIPES_EN }}
+          BOARD_RECIPES_FR: ${{ secrets.BOARD_RECIPES_FR }}
+          BOARD_SPREADS_EN: ${{ secrets.BOARD_SPREADS_EN }}
+          BOARD_SPREADS_FR: ${{ secrets.BOARD_SPREADS_FR }}
+          BOARD_SWEETS_TRENDS: ${{ secrets.BOARD_SWEETS_TRENDS }}
 
-      - name: Export due publish batch
-        env: *bot_env
+      - name: Publish due pins
         run: npm run publish
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_TEXT_MODEL: ${{ secrets.GEMINI_TEXT_MODEL }}
+          POSTS_PER_RUN: ${{ secrets.POSTS_PER_RUN }}
+          LOOKBACK_HOURS: ${{ secrets.LOOKBACK_HOURS }}
+          RENDER_BATCH_SIZE: ${{ secrets.RENDER_BATCH_SIZE }}
+          PUBLISH_BATCH_SIZE: ${{ secrets.PUBLISH_BATCH_SIZE }}
+          PIN_DAY_1: ${{ secrets.PIN_DAY_1 }}
+          PIN_DAY_2: ${{ secrets.PIN_DAY_2 }}
+          PIN_DAY_3: ${{ secrets.PIN_DAY_3 }}
+          BOARD_RECIPES_EN: ${{ secrets.BOARD_RECIPES_EN }}
+          BOARD_RECIPES_FR: ${{ secrets.BOARD_RECIPES_FR }}
+          BOARD_SPREADS_EN: ${{ secrets.BOARD_SPREADS_EN }}
+          BOARD_SPREADS_FR: ${{ secrets.BOARD_SPREADS_FR }}
+          BOARD_SWEETS_TRENDS: ${{ secrets.BOARD_SWEETS_TRENDS }}
 
       - name: Persist state
+        shell: bash
         run: |
           if [[ -n "$(git status --porcelain data)" ]]; then
             git config user.name "codex-pinterest-bot"
