@@ -5,29 +5,32 @@ export async function resolveImageSource(asset, config) {
   const candidates = [];
 
   if (asset.featuredImage) {
-    candidates.push({
-      provider: "featured",
-      url: asset.featuredImage,
-      score: 100,
-      attribution: "site"
-    });
+    candidates.push(await buildFeaturedCandidate(asset));
   }
 
-  const shouldSearchStockFirst = config.imageSourceMode === "stock-first";
-
-  if (shouldSearchStockFirst) {
-    const stockCandidates = await findStockCandidates(queries, config);
-    candidates.unshift(...stockCandidates);
-  } else {
-    const stockCandidates = await findStockCandidates(queries, config);
-    candidates.push(...stockCandidates);
-  }
+  const stockCandidates = await findStockCandidates(queries, config);
+  candidates.push(...stockCandidates);
 
   const best = candidates
-    .filter((candidate) => Boolean(candidate.url))
+    .filter((candidate) => Boolean(candidate?.url))
     .sort((a, b) => b.score - a.score)[0];
 
   return best || null;
+}
+
+async function buildFeaturedCandidate(asset) {
+  const meta = await inspectImage(asset.featuredImage);
+  const score = 68 + scoreDimensions(meta.width, meta.height) + (isLikelyGenericFeatured(asset.featuredImage) ? -18 : 8);
+
+  return {
+    provider: "featured",
+    url: asset.featuredImage,
+    score,
+    attribution: "site",
+    width: meta.width,
+    height: meta.height,
+    reason: isLikelyGenericFeatured(asset.featuredImage) ? "generic-site-image" : "strong-site-image"
+  };
 }
 
 async function findStockCandidates(queries, config) {
@@ -38,6 +41,8 @@ async function findStockCandidates(queries, config) {
       const candidate = await searchPexels(query, config.pexelsApiKey);
       if (candidate) {
         candidates.push(candidate);
+      }
+      if (candidates.some((item) => item.provider === "pexels")) {
         break;
       }
     }
@@ -48,12 +53,31 @@ async function findStockCandidates(queries, config) {
       const candidate = await searchPixabay(query, config.pixabayApiKey);
       if (candidate) {
         candidates.push(candidate);
+      }
+      if (candidates.some((item) => item.provider === "pixabay")) {
         break;
       }
     }
   }
 
-  return candidates;
+  return candidates.map((candidate) => adjustStockScore(candidate, config));
+}
+
+function adjustStockScore(candidate, config) {
+  let score = candidate.score + scoreDimensions(candidate.width, candidate.height);
+
+  if (candidate.queryWords >= 3) {
+    score += 6;
+  }
+
+  if (config.imageSourceMode === "stock-first") {
+    score += 8;
+  }
+
+  return {
+    ...candidate,
+    score
+  };
 }
 
 function buildQueries(asset) {
@@ -62,20 +86,20 @@ function buildQueries(asset) {
     ...(asset.searchTags || []),
     asset.pinTitle,
     asset.boardName,
-    asset.contentType === "spread" ? (asset.language === "fr" ? "pate a tartiner" : "chocolate spread") : "",
-    asset.contentType === "recipe" ? (asset.language === "fr" ? "food recipe" : "food recipe") : "",
-    asset.contentType === "trend" ? "dessert food" : ""
+    asset.contentType === "spread" ? (asset.language === "fr" ? "pate a tartiner" : "chocolate spread jar") : "",
+    asset.contentType === "recipe" ? "food recipe close up" : "",
+    asset.contentType === "trend" ? "dessert food close up" : ""
   ].filter(Boolean);
 
   const cleaned = [];
   for (const seed of seeds) {
-    const value = clampText(String(seed).replace(/[|]/g, " ").trim(), 60);
+    const value = clampText(cleanSearch(seed), 60);
     if (value && !cleaned.includes(value)) {
       cleaned.push(value);
     }
   }
 
-  return cleaned.slice(0, 6);
+  return cleaned.slice(0, 8);
 }
 
 async function searchPexels(query, apiKey) {
@@ -105,9 +129,13 @@ async function searchPexels(query, apiKey) {
     return {
       provider: "pexels",
       url: photo.src.large2x || photo.src.portrait || photo.src.large,
-      score: 88,
+      score: 80,
       attribution: `Pexels / ${photo.photographer || "unknown"}`,
-      sourcePage: photo.url || ""
+      sourcePage: photo.url || "",
+      width: Number(photo.width) || 0,
+      height: Number(photo.height) || 0,
+      query,
+      queryWords: query.split(/\s+/).filter(Boolean).length
     };
   } catch {
     return null;
@@ -139,11 +167,65 @@ async function searchPixabay(query, apiKey) {
     return {
       provider: "pixabay",
       url: hit.largeImageURL || hit.webformatURL,
-      score: 82,
+      score: 74,
       attribution: `Pixabay / ${hit.user || "unknown"}`,
-      sourcePage: hit.pageURL || ""
+      sourcePage: hit.pageURL || "",
+      width: Number(hit.imageWidth) || 0,
+      height: Number(hit.imageHeight) || 0,
+      query,
+      queryWords: query.split(/\s+/).filter(Boolean).length
     };
   } catch {
     return null;
   }
+}
+
+async function inspectImage(url) {
+  try {
+    const response = await fetch(url, {
+      method: "HEAD",
+      headers: {
+        Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+      }
+    });
+
+    if (!response.ok) {
+      return { width: 0, height: 0 };
+    }
+
+    const width = Number(response.headers.get("x-img-width") || 0);
+    const height = Number(response.headers.get("x-img-height") || 0);
+    return { width, height };
+  } catch {
+    return { width: 0, height: 0 };
+  }
+}
+
+function scoreDimensions(width, height) {
+  if (!width || !height) {
+    return 0;
+  }
+
+  if (height > width) {
+    return 10;
+  }
+
+  if (height === width) {
+    return 3;
+  }
+
+  return -4;
+}
+
+function isLikelyGenericFeatured(url) {
+  const value = String(url || "").toLowerCase();
+  return ["placeholder", "default", "generated", "featured-image", "stock"].some((part) => value.includes(part));
+}
+
+function cleanSearch(value) {
+  return String(value || "")
+    .replace(/\|/g, " ")
+    .replace(/[^\w\s-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
