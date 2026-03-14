@@ -50,11 +50,11 @@ export async function renderAsset(asset, config) {
   });
 
   const composites = [];
-  const featuredImageBuffer = await loadFeaturedImage(asset.featuredImage);
+  const visualBuffer = await loadImageBuffer(asset.imageSourceUrl || asset.featuredImage);
 
-  if (featuredImageBuffer) {
+  if (visualBuffer) {
     composites.push({
-      input: await sharp(featuredImageBuffer)
+      input: await sharp(visualBuffer)
         .resize(1000, 1500, { fit: "cover", position: "attention" })
         .blur(2)
         .modulate({ saturation: 1.05, brightness: 0.95 })
@@ -71,7 +71,7 @@ export async function renderAsset(asset, config) {
     });
 
     composites.push({
-      input: await sharp(featuredImageBuffer)
+      input: await sharp(visualBuffer)
         .resize(840, 640, { fit: "cover", position: "attention" })
         .modulate({ saturation: 1.08, brightness: 1.02 })
         .png()
@@ -87,7 +87,7 @@ export async function renderAsset(asset, config) {
     });
   }
 
-  const svg = buildOverlaySvg(asset, theme, Boolean(featuredImageBuffer));
+  const svg = buildOverlaySvg(asset, theme, Boolean(visualBuffer));
   composites.push({ input: Buffer.from(svg), top: 0, left: 0 });
 
   await fs.mkdir(config.assetsDir, { recursive: true });
@@ -146,7 +146,7 @@ function buildOverlaySvg(asset, theme, hasPhoto) {
   `;
 }
 
-async function loadFeaturedImage(url) {
+async function loadImageBuffer(url) {
   if (!url) {
     return null;
   }

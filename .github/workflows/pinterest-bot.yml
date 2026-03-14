@@ -33,6 +33,9 @@ jobs:
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_TEXT_MODEL: ${{ secrets.GEMINI_TEXT_MODEL }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          IMAGE_SOURCE_MODE: ${{ secrets.IMAGE_SOURCE_MODE }}
           POSTS_PER_RUN: ${{ secrets.POSTS_PER_RUN }}
           LOOKBACK_HOURS: ${{ secrets.LOOKBACK_HOURS }}
           RENDER_BATCH_SIZE: ${{ secrets.RENDER_BATCH_SIZE }}
@@ -54,6 +57,9 @@ jobs:
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_TEXT_MODEL: ${{ secrets.GEMINI_TEXT_MODEL }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          IMAGE_SOURCE_MODE: ${{ secrets.IMAGE_SOURCE_MODE }}
           POSTS_PER_RUN: ${{ secrets.POSTS_PER_RUN }}
           LOOKBACK_HOURS: ${{ secrets.LOOKBACK_HOURS }}
           RENDER_BATCH_SIZE: ${{ secrets.RENDER_BATCH_SIZE }}
@@ -75,6 +81,9 @@ jobs:
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_TEXT_MODEL: ${{ secrets.GEMINI_TEXT_MODEL }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          IMAGE_SOURCE_MODE: ${{ secrets.IMAGE_SOURCE_MODE }}
           POSTS_PER_RUN: ${{ secrets.POSTS_PER_RUN }}
           LOOKBACK_HOURS: ${{ secrets.LOOKBACK_HOURS }}
           RENDER_BATCH_SIZE: ${{ secrets.RENDER_BATCH_SIZE }}

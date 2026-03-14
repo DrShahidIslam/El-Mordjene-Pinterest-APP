@@ -34,6 +34,8 @@ This app is intentionally separate from article generation.
   Creates 3 distinct pin variants per article.
 - `src/services/pin-copywriter.js`
   Optionally improves pin copy using Gemini.
+- `src/services/image-source.js`
+  Chooses the best available visual source for a pin: featured image first or free stock from Pexels/Pixabay.
 - `src/services/asset-renderer.js`
   Renders vertical `1000x1500` Pinterest graphics with different looks for recipes, spreads, and trends.
 - `src/services/exporter.js`
@@ -46,7 +48,7 @@ This app is intentionally separate from article generation.
 1. `npm run discover`
    Imports recent posts from WordPress and queues 3 pins for each eligible post.
 2. `npm run render`
-   Renders queued Pinterest graphics into `data/assets`.
+   Resolves a visual source for each queued pin and renders Pinterest graphics into `data/assets`.
 3. `npm run publish`
    Uploads due rendered images to WordPress, injects the 3-pin gallery into the source post, and exports a CSV and JSON batch into `data/exports`.
 4. `npm run status`
@@ -62,6 +64,17 @@ The app currently routes posts into these boards:
 - `Sweets & Trends`
 
 Routing is based on language plus content signals like recipe and spread keywords.
+
+## Image strategy
+
+The renderer now uses a hybrid image pipeline:
+1. post featured image
+2. Pexels stock image if configured
+3. Pixabay stock image if configured
+4. branded template fallback
+
+Set `IMAGE_SOURCE_MODE=featured-first` to keep your own article image as the default.
+Set `IMAGE_SOURCE_MODE=stock-first` if you want the app to prefer stock photos whenever it finds one.
 
 ## What publish means now
 
@@ -88,6 +101,9 @@ Copy `.env.example` into your runtime secret setup and provide:
 - `WP_APP_PASSWORD`
 - `GEMINI_API_KEY` optional
 - `GEMINI_TEXT_MODEL` optional
+- `PEXELS_API_KEY` optional
+- `PIXABAY_API_KEY` optional
+- `IMAGE_SOURCE_MODE` optional
 - `POSTS_PER_RUN`
 - `LOOKBACK_HOURS`
 - `RENDER_BATCH_SIZE`
@@ -109,4 +125,4 @@ The included workflow does three things every run:
 ## Notes
 
 This is now aligned with the strongest official Pinterest automation route.
-The next step after this should be category-specific RSS feed planning on your site so each board gets its own feed.
+For image quality, free stock plus strong text overlays is more reliable than depending on free AI image generation every day.
