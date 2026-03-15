@@ -29,7 +29,8 @@ export function createWordPressClient(config) {
       const posts = await fetchJson(endpoint, {
         headers: {
           Accept: "application/json",
-          Authorization: buildAuthHeader(config)
+          Authorization: buildAuthHeader(config),
+          "User-Agent": config.wpUserAgent
         }
       }, "fetch posts");
       return posts.map(normalizePost);
@@ -44,7 +45,8 @@ export function createWordPressClient(config) {
       return fetchJson(endpoint, {
         headers: {
           Accept: "application/json",
-          Authorization: buildAuthHeader(config)
+          Authorization: buildAuthHeader(config),
+          "User-Agent": config.wpUserAgent
         }
       }, "fetch categories");
     },
@@ -58,6 +60,7 @@ export function createWordPressClient(config) {
         method: "POST",
         headers: {
           Authorization: buildAuthHeader(config),
+          "User-Agent": config.wpUserAgent,
           "Content-Type": "image/png",
           "Content-Disposition": `attachment; filename="${filename}"`
         },
@@ -75,6 +78,7 @@ export function createWordPressClient(config) {
         method: "POST",
         headers: {
           Authorization: buildAuthHeader(config),
+          "User-Agent": config.wpUserAgent,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ alt_text: title.slice(0, 125) })
@@ -107,6 +111,7 @@ export function createWordPressClient(config) {
         method: "POST",
         headers: {
           Authorization: buildAuthHeader(config),
+          "User-Agent": config.wpUserAgent,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ content: updatedContent })
@@ -259,5 +264,7 @@ function escapeAttribute(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 }
+
+
 
 

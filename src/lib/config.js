@@ -15,6 +15,7 @@ export function loadConfig() {
     siteUrl,
     wpUsername: required("WP_USERNAME"),
     wpAppPassword: required("WP_APP_PASSWORD"),
+    wpUserAgent: process.env.WP_USER_AGENT?.trim() || "El-Mordjene-Pinterest-Bot/1.0",
     geminiApiKey: process.env.GEMINI_API_KEY?.trim() || "",
     geminiTextModel: process.env.GEMINI_TEXT_MODEL?.trim() || "gemini-2.0-flash",
     pexelsApiKey: process.env.PEXELS_API_KEY?.trim() || "",
@@ -63,4 +64,6 @@ function numberFromEnv(name, fallback) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
+
+
 
