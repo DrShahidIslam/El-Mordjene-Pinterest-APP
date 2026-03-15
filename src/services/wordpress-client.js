@@ -153,12 +153,22 @@ async function fetchEditablePost(config, postId) {
 
 function buildGalleryHtml(postUrl, items) {
   const blocks = items.map((item) => {
-    return `<p><a href="${postUrl}"><img src="${item.mediaUrl}" alt="${escapeAttribute(item.pinTitle)}" /></a></p>`;
-  }).join("\n");
+    const title = escapeAttribute(item.pinTitle);
+    const description = escapeAttribute(item.pinDescription || "");
+    const scheduledFor = escapeAttribute(item.scheduledFor || "");
+    const keyword = escapeAttribute(item.primaryKeyword || "");
+    const variant = escapeAttribute(item.variant || "");
+    const board = escapeAttribute(item.boardName || "");
 
-  return `${GALLERY_MARKER}\n<div class="pinterest-gallery">\n${blocks}\n</div>`;
+    return `<p><a href="${postUrl}"><img src="${item.mediaUrl}" alt="${title}" data-pin-title="${title}" data-pin-description="${description}" data-pin-scheduled="${scheduledFor}" data-pin-keyword="${keyword}" data-pin-variant="${variant}" data-pin-board="${board}" /></a></p>`;
+  }).join("
+");
+
+  return `${GALLERY_MARKER}
+<div class="pinterest-gallery">
+${blocks}
+</div>`;
 }
-
 function replacePinterestGallery(content, galleryHtml) {
   const pattern = new RegExp(`${GALLERY_MARKER}\\s*<div class=\"pinterest-gallery\">[\\s\\S]*?<\\/div>`, "i");
   if (!pattern.test(content)) {

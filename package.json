@@ -13,7 +13,8 @@
     "publish": "node src/index.js publish",
     "plan-feeds": "node src/index.js plan-feeds",
     "reclassify": "node src/index.js reclassify",
-    "status": "node src/index.js status"
+    "status": "node src/index.js status",
+    "refresh-galleries": "node src/index.js refresh-galleries"
   },
   "engines": {
     "node": ">=20"

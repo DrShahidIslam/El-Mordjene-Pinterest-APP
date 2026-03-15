@@ -9,6 +9,7 @@ import { publishDueQueue } from "./workflows/publish-queue.js";
 import { runBotCycle } from "./workflows/run-cycle.js";
 import { printStatus } from "./workflows/print-status.js";
 import { reclassifyState } from "./workflows/reclassify-state.js";
+import { refreshPinterestGalleries } from "./workflows/refresh-galleries.js";
 
 async function main() {
   const command = process.argv[2] || "discover";
@@ -49,6 +50,11 @@ async function main() {
 
   if (command === "reclassify") {
     await reclassifyState({ config, state, wordpress });
+    return;
+  }
+
+  if (command === "refresh-galleries") {
+    await refreshPinterestGalleries({ config, state, wordpress });
     return;
   }
 
