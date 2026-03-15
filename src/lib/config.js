@@ -25,6 +25,8 @@ export function loadConfig() {
     postsPerRun: numberFromEnv("POSTS_PER_RUN", 6),
     renderBatchSize: numberFromEnv("RENDER_BATCH_SIZE", 9),
     publishBatchSize: numberFromEnv("PUBLISH_BATCH_SIZE", 9),
+    maxPinsPerDay: numberFromEnv("MAX_PINS_PER_DAY", 15),
+    maxPostsPerDay: numberFromEnv("MAX_POSTS_PER_DAY", 5),
     assetsDir: path.resolve(process.env.ASSETS_DIR?.trim() || "data/assets"),
     exportsDir: path.resolve(process.env.EXPORTS_DIR?.trim() || "data/exports"),
     statePath: path.resolve(process.env.STATE_PATH?.trim() || "data/state.json"),

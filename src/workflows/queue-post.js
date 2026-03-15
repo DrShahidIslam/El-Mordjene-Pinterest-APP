@@ -1,6 +1,6 @@
 ﻿import { buildKeywordSet, clampText, slugify } from "../lib/text.js";
 import { enrichVariantsWithCopy } from "../services/pin-copywriter.js";
-import { buildPinPlan } from "../services/pin-planner.js";
+import { buildPinPlan, scheduleDate } from "../services/pin-planner.js";
 import { classifyPost } from "../services/classifier.js";
 
 const PLAN_KEYS = ["hero", "list", "guide"];
@@ -43,7 +43,8 @@ export async function queuePost({ config, state, post, scheduleAnchorDate }) {
     };
   }
 
-  const basePlan = buildPinPlan(post, classification, config, { scheduleAnchorDate });
+  const resolvedAnchorDate = resolveScheduleAnchorDate({ config, state, post, scheduleAnchorDate });
+  const basePlan = buildPinPlan(post, classification, config, { scheduleAnchorDate: resolvedAnchorDate });
   const plans = missingAssetKeys.length > 0
     ? await enrichVariantsWithCopy(post, classification, basePlan, config)
     : basePlan;
@@ -174,4 +175,85 @@ function normalizeText(value) {
     .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function resolveScheduleAnchorDate({ config, state, post, scheduleAnchorDate }) {
+  const maxPins = Number.isFinite(config.maxPinsPerDay) ? config.maxPinsPerDay : 15;
+  const maxPosts = Number.isFinite(config.maxPostsPerDay) ? config.maxPostsPerDay : 5;
+  const base = scheduleAnchorDate || post.date || new Date().toISOString();
+  const anchor = new Date(base);
+  anchor.setUTCHours(0, 0, 0, 0);
+
+  const stats = buildDailyStats(state);
+  for (let offset = 0; offset < 366; offset += 1) {
+    const candidate = new Date(anchor);
+    candidate.setUTCDate(candidate.getUTCDate() + offset);
+    const candidateIso = candidate.toISOString();
+
+    const scheduledDates = [0, 1, 2].map((index) => scheduleDate(candidateIso, index, config));
+    if (canScheduleForDates(stats, scheduledDates, post.id, maxPins, maxPosts)) {
+      applyScheduleToStats(stats, scheduledDates, post.id);
+      return candidateIso;
+    }
+  }
+
+  return anchor.toISOString();
+}
+
+function buildDailyStats(state) {
+  const stats = new Map();
+  const queue = state.state?.queue || {};
+  for (const item of Object.values(queue)) {
+    const dayKey = dayKeyFromDate(item.scheduledFor);
+    if (!dayKey) {
+      continue;
+    }
+    const entry = stats.get(dayKey) || { pins: 0, posts: new Set() };
+    entry.pins += 1;
+    if (item.postId) {
+      entry.posts.add(item.postId);
+    }
+    stats.set(dayKey, entry);
+  }
+  return stats;
+}
+
+function canScheduleForDates(stats, dates, postId, maxPins, maxPosts) {
+  for (const iso of dates) {
+    const dayKey = dayKeyFromDate(iso);
+    if (!dayKey) {
+      continue;
+    }
+    const entry = stats.get(dayKey) || { pins: 0, posts: new Set() };
+    const nextPins = entry.pins + 1;
+    const nextPosts = entry.posts.has(postId) ? entry.posts.size : entry.posts.size + 1;
+    if (nextPins > maxPins || nextPosts > maxPosts) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function applyScheduleToStats(stats, dates, postId) {
+  for (const iso of dates) {
+    const dayKey = dayKeyFromDate(iso);
+    if (!dayKey) {
+      continue;
+    }
+    const entry = stats.get(dayKey) || { pins: 0, posts: new Set() };
+    entry.pins += 1;
+    entry.posts.add(postId);
+    stats.set(dayKey, entry);
+  }
+}
+
+function dayKeyFromDate(value) {
+  if (!value) {
+    return null;
+  }
+  try {
+    return new Date(value).toISOString().slice(0, 10);
+  } catch {
+    return null;
+  }
 }

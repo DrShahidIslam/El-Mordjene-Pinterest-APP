@@ -134,7 +134,7 @@ function titleCase(value) {
     .join(" ");
 }
 
-function scheduleDate(postDate, index, config) {
+export function scheduleDate(postDate, index, config) {
   const offsets = [
     config.queueSpacingDays.first,
     config.queueSpacingDays.second,
