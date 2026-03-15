@@ -161,13 +161,9 @@ function buildGalleryHtml(postUrl, items) {
     const board = escapeAttribute(item.boardName || "");
 
     return `<p><a href="${postUrl}"><img src="${item.mediaUrl}" alt="${title}" data-pin-title="${title}" data-pin-description="${description}" data-pin-scheduled="${scheduledFor}" data-pin-keyword="${keyword}" data-pin-variant="${variant}" data-pin-board="${board}" /></a></p>`;
-  }).join("
-");
+  }).join("\n");
 
-  return `${GALLERY_MARKER}
-<div class="pinterest-gallery">
-${blocks}
-</div>`;
+  return `${GALLERY_MARKER}\n<div class="pinterest-gallery">\n${blocks}\n</div>`;
 }
 function replacePinterestGallery(content, galleryHtml) {
   const pattern = new RegExp(`${GALLERY_MARKER}\\s*<div class=\"pinterest-gallery\">[\\s\\S]*?<\\/div>`, "i");

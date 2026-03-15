@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Plugin Name: Pinterest Autopilot Feed
  * Description: Exposes a custom RSS feed with one item per Pinterest pin variant injected by the autopilot app.
