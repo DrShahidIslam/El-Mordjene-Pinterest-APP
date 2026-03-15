@@ -61,7 +61,7 @@ export function createWordPressClient(config) {
         headers: {
           Authorization: buildAuthHeader(config),
           "User-Agent": config.wpUserAgent,
-          "Content-Type": "image/png",
+          "Content-Type": "image/webp",
           "Content-Disposition": `attachment; filename="${filename}"`
         },
         body: fileBuffer
@@ -264,6 +264,7 @@ function escapeAttribute(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 }
+
 
 
 
