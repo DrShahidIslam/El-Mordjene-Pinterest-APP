@@ -101,12 +101,18 @@ export function createWordPressClient(config) {
     async appendPinterestGallery(postId, postUrl, items) {
       const post = await fetchEditablePost(config, postId);
       const currentContent = post.content?.raw || post.content?.rendered || "";
+      const galleryHtml = buildGalleryHtml(postUrl, items);
+
+      let updatedContent = currentContent;
       if (currentContent.includes(GALLERY_MARKER)) {
-        return { updated: false };
+        updatedContent = replacePinterestGallery(currentContent, galleryHtml);
+        if (updatedContent === currentContent) {
+          return { updated: false };
+        }
+      } else {
+        updatedContent = `${currentContent}\n\n${galleryHtml}`;
       }
 
-      const galleryHtml = buildGalleryHtml(postUrl, items);
-      const updatedContent = `${currentContent}\n\n${galleryHtml}`;
       const endpoint = new URL(`/wp-json/wp/v2/posts/${postId}`, config.siteUrl);
 
       const response = await fetch(endpoint, {
@@ -159,6 +165,13 @@ function buildGalleryHtml(postUrl, items) {
   return `${GALLERY_MARKER}\n<div class="pinterest-gallery">\n${blocks}\n</div>`;
 }
 
+function replacePinterestGallery(content, galleryHtml) {
+  const pattern = new RegExp(`${GALLERY_MARKER}\\s*<div class=\"pinterest-gallery\">[\\s\\S]*?<\\/div>`, "i");
+  if (!pattern.test(content)) {
+    return content;
+  }
+  return content.replace(pattern, galleryHtml);
+}
 function normalizePost(post) {
   const terms = post._embedded?.["wp:term"] || [];
   const allTerms = terms.flat();
@@ -227,3 +240,4 @@ function escapeAttribute(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 }
+

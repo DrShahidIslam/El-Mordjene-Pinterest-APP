@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+ï»¿import fs from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import { escapeHtml, wrapText } from "../templates/svg-text.js";
@@ -65,18 +65,18 @@ export async function renderAsset(asset, config) {
     });
 
     composites.push({
-      input: Buffer.from(`<svg width="1000" height="1500" xmlns="http://www.w3.org/2000/svg"><rect width="1000" height="1500" fill="rgba(42,25,16,0.32)"/></svg>`),
+      input: Buffer.from(`<svg width="1000" height="1500" xmlns="http://www.w3.org/2000/svg"><rect width="1000" height="1500" fill="rgba(42,25,16,0.18)"/></svg>`),
       top: 0,
       left: 0
     });
 
     composites.push({
       input: await sharp(visualBuffer)
-        .resize(840, 640, { fit: "cover", position: "attention" })
+        .resize(840, 720, { fit: "cover", position: "attention" })
         .modulate({ saturation: 1.08, brightness: 1.02 })
         .png()
         .toBuffer(),
-      top: 108,
+      top: 80,
       left: 80
     });
   } else {
@@ -99,12 +99,12 @@ function buildOverlaySvg(asset, theme, hasPhoto) {
   const titleLines = wrapText(asset.overlayTitle, 18, 4);
   const subtitleLines = wrapText(asset.overlaySubtitle, 28, 3);
   const keywordLabel = wrapText(toDisplayCase(asset.primaryKeyword || asset.overlayTitle), 24, 2);
-  const footerTags = wrapText((asset.searchTags || []).slice(0, 3).join("  •  "), 54, 2);
+  const footerTags = wrapText((asset.searchTags || []).slice(0, 3).join("  -  "), 54, 2);
   const variantLabel = VARIANT_LABELS[asset.variant] || "Pinterest Pin";
 
   const titleSvg = titleLines
     .map((line, index) => {
-      const y = hasPhoto ? 870 + index * 86 : 330 + index * 90;
+      const y = hasPhoto ? 900 + index * 82 : 330 + index * 90;
       const fill = hasPhoto ? theme.hero : "#fff8f1";
       return `<text x="100" y="${y}" font-size="72" font-family="Georgia, serif" fill="${fill}" font-weight="700">${escapeHtml(line)}</text>`;
     })
@@ -112,35 +112,35 @@ function buildOverlaySvg(asset, theme, hasPhoto) {
 
   const subtitleSvg = subtitleLines
     .map((line, index) => {
-      const y = 1160 + index * 52;
+      const y = 1140 + index * 46;
       return `<text x="110" y="${y}" font-size="42" font-family="Arial, sans-serif" fill="${theme.panelText}" font-weight="700">${escapeHtml(line)}</text>`;
     })
     .join("");
 
   const keywordSvg = keywordLabel
-    .map((line, index) => `<text x="130" y="${160 + index * 34}" font-size="28" font-family="Arial, sans-serif" fill="#fff7ef" font-weight="700">${escapeHtml(line)}</text>`)
+    .map((line, index) => `<text x="128" y="${156 + index * 32}" font-size="26" font-family="Arial, sans-serif" fill="#fff7ef" font-weight="700">${escapeHtml(line)}</text>`)
     .join("");
 
   const tagSvg = footerTags
-    .map((line, index) => `<text x="110" y="${1412 + index * 28}" font-size="22" font-family="Arial, sans-serif" fill="#896756">${escapeHtml(line)}</text>`)
+    .map((line, index) => `<text x="110" y="${1396 + index * 26}" font-size="21" font-family="Arial, sans-serif" fill="#896756">${escapeHtml(line)}</text>`)
     .join("");
 
   return `
     <svg width="1000" height="1500" viewBox="0 0 1000 1500" xmlns="http://www.w3.org/2000/svg">
-      <rect x="48" y="48" width="904" height="1404" rx="36" fill="#fffaf5" opacity="0.96"/>
-      <rect x="80" y="80" width="840" height="640" rx="34" fill="${hasPhoto ? "rgba(255,250,245,0.04)" : theme.hero}"/>
-      ${hasPhoto ? `<rect x="80" y="80" width="840" height="640" rx="34" fill="rgba(64,32,18,0.22)"/>` : `<circle cx="770" cy="220" r="170" fill="#ffffff" opacity="0.10"/><circle cx="250" cy="560" r="120" fill="#ffffff" opacity="0.08"/>`}
-      <rect x="108" y="108" width="320" height="96" rx="28" fill="${theme.accent}" opacity="0.95"/>
+      <rect x="48" y="48" width="904" height="1404" rx="36" fill="#fffaf5" opacity="0.90"/>
+      <rect x="80" y="80" width="840" height="720" rx="34" fill="${hasPhoto ? "rgba(255,250,245,0.03)" : theme.hero}"/>
+      ${hasPhoto ? `<rect x="80" y="80" width="840" height="720" rx="34" fill="rgba(64,32,18,0.12)"/>` : `<circle cx="770" cy="220" r="170" fill="#ffffff" opacity="0.10"/><circle cx="250" cy="560" r="120" fill="#ffffff" opacity="0.08"/>`}
+      <rect x="108" y="104" width="300" height="84" rx="24" fill="${theme.accent}" opacity="0.92"/>
       ${keywordSvg}
-      <text x="890" y="128" text-anchor="end" font-size="24" font-family="Arial, sans-serif" fill="#fef1e5" font-weight="700">${escapeHtml(variantLabel)}</text>
-      <text x="890" y="158" text-anchor="end" font-size="24" font-family="Arial, sans-serif" fill="#f8ddca" font-weight="700">${escapeHtml(theme.badge)}</text>
-      <rect x="84" y="760" width="832" height="420" rx="34" fill="${theme.panel}" opacity="0.98"/>
-      <rect x="110" y="1088" width="780" height="156" rx="28" fill="#fff8f1" opacity="0.86"/>
+      <text x="890" y="124" text-anchor="end" font-size="22" font-family="Arial, sans-serif" fill="#fef1e5" font-weight="700">${escapeHtml(variantLabel)}</text>
+      <text x="890" y="152" text-anchor="end" font-size="22" font-family="Arial, sans-serif" fill="#f8ddca" font-weight="700">${escapeHtml(theme.badge)}</text>
+      <rect x="84" y="820" width="832" height="380" rx="34" fill="${theme.panel}" opacity="0.92"/>
+      <rect x="110" y="1080" width="780" height="120" rx="26" fill="#fff8f1" opacity="0.88"/>
       ${titleSvg}
       ${subtitleSvg}
-      <rect x="110" y="1288" width="780" height="88" rx="44" fill="${theme.accent}"/>
-      <text x="500" y="1343" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" fill="#fff8f0" font-weight="700">Read more on el-mordjene.info</text>
-      <text x="110" y="1380" font-size="26" font-family="Arial, sans-serif" fill="#6f4d39">${escapeHtml(asset.boardName.toUpperCase())}</text>
+      <rect x="110" y="1244" width="780" height="82" rx="41" fill="${theme.accent}"/>
+      <text x="500" y="1296" text-anchor="middle" font-size="32" font-family="Arial, sans-serif" fill="#fff8f0" font-weight="700">Read more on el-mordjene.info</text>
+      <text x="110" y="1362" font-size="25" font-family="Arial, sans-serif" fill="#6f4d39">${escapeHtml(asset.boardName.toUpperCase())}</text>
       ${tagSvg}
     </svg>
   `;
@@ -176,3 +176,4 @@ function toDisplayCase(value) {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 }
+
