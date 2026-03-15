@@ -142,6 +142,12 @@ function scheduleDate(postDate, index, config) {
   ];
   const date = new Date(postDate);
   date.setUTCDate(date.getUTCDate() + (offsets[index] || 0));
+
+  const slot = Array.isArray(config.pinHourSlots) ? config.pinHourSlots[index] : undefined;
+  if (Number.isFinite(slot)) {
+    date.setUTCHours(slot, 0, 0, 0);
+  }
+
   return date.toISOString();
 }
 

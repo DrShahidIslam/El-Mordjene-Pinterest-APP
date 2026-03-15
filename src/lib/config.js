@@ -28,6 +28,11 @@ export function loadConfig() {
     assetsDir: path.resolve(process.env.ASSETS_DIR?.trim() || "data/assets"),
     exportsDir: path.resolve(process.env.EXPORTS_DIR?.trim() || "data/exports"),
     statePath: path.resolve(process.env.STATE_PATH?.trim() || "data/state.json"),
+    pinHourSlots: [
+      numberFromEnv("PIN_HOUR_1", 9),
+      numberFromEnv("PIN_HOUR_2", 14),
+      numberFromEnv("PIN_HOUR_3", 19)
+    ],
     backfillPostsPerRun: numberFromEnv("BACKFILL_POSTS_PER_RUN", 12),
     backfillMaxPages: numberFromEnv("BACKFILL_MAX_PAGES", 10),
     backfillStartDelayHours: numberFromEnv("BACKFILL_START_DELAY_HOURS", 24),

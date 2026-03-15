@@ -1,21 +1,33 @@
 import { clampText } from "../lib/text.js";
 
-export async function resolveImageSource(asset, config) {
+export async function resolveImageSource(asset, config, options = {}) {
   const queries = buildQueries(asset);
   const candidates = [];
+  const excludeUrls = new Set((options.excludeUrls || []).filter(Boolean));
 
-  if (asset.featuredImage) {
+  if (asset.featuredImage && !excludeUrls.has(asset.featuredImage)) {
     candidates.push(await buildFeaturedCandidate(asset));
   }
 
-  const stockCandidates = await findStockCandidates(queries, config);
+  const stockCandidates = await findStockCandidates(queries, config, excludeUrls);
   candidates.push(...stockCandidates);
 
-  const best = candidates
-    .filter((candidate) => Boolean(candidate?.url))
-    .sort((a, b) => b.score - a.score)[0];
+  const best = pickBestCandidate(candidates, excludeUrls);
+  if (best) {
+    return best;
+  }
 
-  return best || null;
+  if (options.allowFallback) {
+    return pickBestCandidate(candidates) || null;
+  }
+
+  return null;
+}
+
+function pickBestCandidate(candidates, excludeUrls) {
+  const filtered = Array.isArray(candidates) ? candidates.filter((candidate) => Boolean(candidate?.url)) : [];
+  const usable = excludeUrls ? filtered.filter((candidate) => !excludeUrls.has(candidate.url)) : filtered;
+  return usable.sort((a, b) => b.score - a.score)[0] || null;
 }
 
 async function buildFeaturedCandidate(asset) {
@@ -33,12 +45,12 @@ async function buildFeaturedCandidate(asset) {
   };
 }
 
-async function findStockCandidates(queries, config) {
+async function findStockCandidates(queries, config, excludeUrls) {
   const candidates = [];
 
   if (config.pexelsApiKey) {
     for (const query of queries) {
-      const candidate = await searchPexels(query, config.pexelsApiKey);
+      const candidate = await searchPexels(query, config.pexelsApiKey, excludeUrls);
       if (candidate) {
         candidates.push(candidate);
       }
@@ -50,7 +62,7 @@ async function findStockCandidates(queries, config) {
 
   if (config.pixabayApiKey) {
     for (const query of queries) {
-      const candidate = await searchPixabay(query, config.pixabayApiKey);
+      const candidate = await searchPixabay(query, config.pixabayApiKey, excludeUrls);
       if (candidate) {
         candidates.push(candidate);
       }
@@ -102,7 +114,7 @@ function buildQueries(asset) {
   return cleaned.slice(0, 8);
 }
 
-async function searchPexels(query, apiKey) {
+async function searchPexels(query, apiKey, excludeUrls) {
   try {
     const endpoint = new URL("https://api.pexels.com/v1/search");
     endpoint.searchParams.set("query", query);
@@ -121,7 +133,11 @@ async function searchPexels(query, apiKey) {
 
     const data = await response.json();
     const photos = Array.isArray(data.photos) ? data.photos : [];
-    const photo = photos.find((item) => item.src?.large2x || item.src?.portrait || item.src?.large);
+    const photo = photos.find((item) => {
+      const url = item.src?.large2x || item.src?.portrait || item.src?.large;
+      if (!url) return false;
+      return excludeUrls ? !excludeUrls.has(url) : true;
+    });
     if (!photo) {
       return null;
     }
@@ -142,7 +158,7 @@ async function searchPexels(query, apiKey) {
   }
 }
 
-async function searchPixabay(query, apiKey) {
+async function searchPixabay(query, apiKey, excludeUrls) {
   try {
     const endpoint = new URL("https://pixabay.com/api/");
     endpoint.searchParams.set("key", apiKey);
@@ -159,7 +175,11 @@ async function searchPixabay(query, apiKey) {
 
     const data = await response.json();
     const hits = Array.isArray(data.hits) ? data.hits : [];
-    const hit = hits.find((item) => item.largeImageURL || item.webformatURL);
+    const hit = hits.find((item) => {
+      const url = item.largeImageURL || item.webformatURL;
+      if (!url) return false;
+      return excludeUrls ? !excludeUrls.has(url) : true;
+    });
     if (!hit) {
       return null;
     }

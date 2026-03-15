@@ -52,6 +52,9 @@ export async function createStateStore(config) {
     getAsset(assetId) {
       return this.state.assets[assetId] || null;
     },
+    getAssetsByPostId(postId) {
+      return Object.values(this.state.assets).filter((asset) => asset.postId === postId);
+    },
     countDueDraftQueueItems() {
       const now = Date.now();
       return Object.values(this.state.queue)

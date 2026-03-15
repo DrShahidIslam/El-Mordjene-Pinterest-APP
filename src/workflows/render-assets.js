@@ -9,13 +9,27 @@ export async function renderPendingAssets({ config, state }) {
   }
 
   for (const asset of assets) {
+    const siblingAssets = state.getAssetsByPostId
+      ? state.getAssetsByPostId(asset.postId)
+      : Object.values(state.state.assets || {}).filter((item) => item.postId === asset.postId);
+    const usedUrls = siblingAssets
+      .filter((item) => item.id !== asset.id)
+      .map((item) => item.imageSourceUrl)
+      .filter(Boolean);
     if (!asset.imageSourceUrl) {
-      const imageSource = await resolveImageSource(asset, config);
+      const imageSource = await resolveImageSource(asset, config, { excludeUrls: usedUrls, allowFallback: true });
       if (imageSource) {
         asset.imageSourceUrl = imageSource.url;
         asset.imageSourceProvider = imageSource.provider;
         asset.imageSourceAttribution = imageSource.attribution || "";
         asset.imageSourcePage = imageSource.sourcePage || "";
+        if (usedUrls.includes(imageSource.url)) {
+          asset.imageSourceDuplicate = true;
+          console.log(`Duplicate image fallback for ${asset.id} -> ${imageSource.url}`);
+        }
+      } else if (asset.featuredImage && usedUrls.includes(asset.featuredImage)) {
+        asset.imageSourceDuplicate = true;
+        console.log(`Duplicate featured image fallback for ${asset.id}`);
       }
     }
 

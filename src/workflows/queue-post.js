@@ -1,4 +1,4 @@
-﻿import { buildKeywordSet, slugify } from "../lib/text.js";
+﻿import { buildKeywordSet, clampText, slugify } from "../lib/text.js";
 import { enrichVariantsWithCopy } from "../services/pin-copywriter.js";
 import { buildPinPlan } from "../services/pin-planner.js";
 import { classifyPost } from "../services/classifier.js";
@@ -47,6 +47,7 @@ export async function queuePost({ config, state, post, scheduleAnchorDate }) {
   const plans = missingAssetKeys.length > 0
     ? await enrichVariantsWithCopy(post, classification, basePlan, config)
     : basePlan;
+  ensureUniqueCopy(plans);
   const plansByKey = new Map(plans.map((plan) => [plan.key, plan]));
 
   let queuedAssets = 0;
@@ -120,4 +121,57 @@ function buildSearchTags(plan, classification) {
     .map((value) => String(value).trim().toLowerCase());
 
   return [...new Set(seed)].slice(0, 8);
+}
+
+function ensureUniqueCopy(plans) {
+  if (!Array.isArray(plans) || plans.length === 0) {
+    return;
+  }
+
+  ensureUniqueField(plans, "overlayTitle", 56);
+  ensureUniqueField(plans, "overlaySubtitle", 70);
+  ensureUniqueField(plans, "pinTitle", 100);
+}
+
+function ensureUniqueField(plans, field, maxLength) {
+  const groups = new Map();
+  for (const plan of plans) {
+    const raw = String(plan[field] || "").trim();
+    const key = normalizeText(raw);
+    if (!key) {
+      continue;
+    }
+    const list = groups.get(key) || [];
+    list.push(plan);
+    groups.set(key, list);
+  }
+
+  for (const list of groups.values()) {
+    if (list.length < 2) {
+      continue;
+    }
+    for (const plan of list) {
+      const suffix = variantSuffix(plan.key);
+      const raw = String(plan[field] || "").trim();
+      const next = suffix && !raw.toLowerCase().includes(suffix.toLowerCase())
+        ? `${raw} - ${suffix}`
+        : raw;
+      plan[field] = clampText(next, maxLength);
+    }
+  }
+}
+
+function variantSuffix(key) {
+  if (key === "hero") return "Main pick";
+  if (key === "list") return "Quick summary";
+  if (key === "guide") return "Quick guide";
+  return "";
+}
+
+function normalizeText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
