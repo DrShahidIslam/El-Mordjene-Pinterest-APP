@@ -26,18 +26,12 @@ export function createWordPressClient(config) {
       endpoint.searchParams.set("order", "desc");
       endpoint.searchParams.set("_embed", "1");
 
-      const response = await fetch(endpoint, {
+      const posts = await fetchJson(endpoint, {
         headers: {
           Accept: "application/json",
           Authorization: buildAuthHeader(config)
         }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch posts: ${response.status} ${response.statusText}`);
-      }
-
-      const posts = await response.json();
+      }, "fetch posts");
       return posts.map(normalizePost);
     },
 
@@ -47,18 +41,12 @@ export function createWordPressClient(config) {
       endpoint.searchParams.set("orderby", "count");
       endpoint.searchParams.set("order", "desc");
 
-      const response = await fetch(endpoint, {
+      return fetchJson(endpoint, {
         headers: {
           Accept: "application/json",
           Authorization: buildAuthHeader(config)
         }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch categories: ${response.status} ${response.statusText}`);
-      }
-
-      return response.json();
+      }, "fetch categories");
     },
 
     async uploadMedia(filePath, title) {
@@ -81,7 +69,7 @@ export function createWordPressClient(config) {
         throw new Error(`Media upload failed: ${response.status} ${body}`);
       }
 
-      const media = await response.json();
+      const media = await parseJsonResponse(response, "media upload");
 
       await fetch(new URL(`/wp-json/wp/v2/media/${media.id}`, config.siteUrl), {
         method: "POST",
@@ -151,10 +139,11 @@ async function fetchEditablePost(config, postId) {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch post ${postId}: ${response.status} ${response.statusText}`);
+    const body = await safeReadBody(response);
+    throw new Error(`Failed to fetch post ${postId}: ${response.status} ${response.statusText}${body}`);
   }
 
-  return response.json();
+  return parseJsonResponse(response, `fetch post ${postId}`);
 }
 
 function buildGalleryHtml(postUrl, items) {
@@ -171,6 +160,36 @@ function replacePinterestGallery(content, galleryHtml) {
     return content;
   }
   return content.replace(pattern, galleryHtml);
+}
+async function fetchJson(endpoint, options, context) {
+  const response = await fetch(endpoint, options);
+  if (!response.ok) {
+    const body = await safeReadBody(response);
+    throw new Error(`Failed to ${context}: ${response.status} ${response.statusText}${body}`);
+  }
+
+  return parseJsonResponse(response, context);
+}
+
+async function parseJsonResponse(response, context) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    const contentType = response.headers.get("content-type") || "unknown";
+    const snippet = text.trim().slice(0, 160);
+    throw new Error(`Unexpected response for ${context}: content-type=${contentType} body="${snippet}"`);
+  }
+}
+
+async function safeReadBody(response) {
+  try {
+    const text = await response.text();
+    const snippet = text.trim().slice(0, 160);
+    return snippet ? ` body="${snippet}"` : "";
+  } catch {
+    return "";
+  }
 }
 function normalizePost(post) {
   const terms = post._embedded?.["wp:term"] || [];
@@ -240,4 +259,5 @@ function escapeAttribute(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 }
+
 
