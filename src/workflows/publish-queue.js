@@ -4,7 +4,7 @@ export async function publishDueQueue({ config, state, wordpress }) {
   const dueItems = state.getDueQueueItems(config.publishBatchSize);
   if (dueItems.length === 0) {
     console.log("No due queue items to publish.");
-    return;
+    return { exportedCount: 0, dueCount: 0 };
   }
 
   const rows = [];
@@ -49,7 +49,7 @@ export async function publishDueQueue({ config, state, wordpress }) {
 
   if (rows.length === 0) {
     console.log("No rendered assets were ready for export.");
-    return;
+    return { exportedCount: 0, dueCount: dueItems.length };
   }
 
   for (const [postId, assets] of groupedByPost.entries()) {
@@ -72,4 +72,5 @@ export async function publishDueQueue({ config, state, wordpress }) {
 
   await state.save();
   console.log(`Exported ${rows.length} due pins and injected post galleries -> ${files.csvPath}`);
+  return { exportedCount: rows.length, dueCount: dueItems.length };
 }

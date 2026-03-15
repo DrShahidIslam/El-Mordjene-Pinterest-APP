@@ -25,56 +25,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Discover posts
-        run: npm run discover
-        env:
-          SITE_URL: ${{ secrets.SITE_URL }}
-          WP_USERNAME: ${{ secrets.WP_USERNAME }}
-          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_TEXT_MODEL: ${{ secrets.GEMINI_TEXT_MODEL }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
-          IMAGE_SOURCE_MODE: ${{ secrets.IMAGE_SOURCE_MODE }}
-          POSTS_PER_RUN: ${{ secrets.POSTS_PER_RUN }}
-          LOOKBACK_HOURS: ${{ secrets.LOOKBACK_HOURS }}
-          RENDER_BATCH_SIZE: ${{ secrets.RENDER_BATCH_SIZE }}
-          PUBLISH_BATCH_SIZE: ${{ secrets.PUBLISH_BATCH_SIZE }}
-          PIN_DAY_1: ${{ secrets.PIN_DAY_1 }}
-          PIN_DAY_2: ${{ secrets.PIN_DAY_2 }}
-          PIN_DAY_3: ${{ secrets.PIN_DAY_3 }}
-          BOARD_RECIPES_EN: ${{ secrets.BOARD_RECIPES_EN }}
-          BOARD_RECIPES_FR: ${{ secrets.BOARD_RECIPES_FR }}
-          BOARD_SPREADS_EN: ${{ secrets.BOARD_SPREADS_EN }}
-          BOARD_SPREADS_FR: ${{ secrets.BOARD_SPREADS_FR }}
-          BOARD_SWEETS_TRENDS: ${{ secrets.BOARD_SWEETS_TRENDS }}
-
-      - name: Render queued assets
-        run: npm run render
-        env:
-          SITE_URL: ${{ secrets.SITE_URL }}
-          WP_USERNAME: ${{ secrets.WP_USERNAME }}
-          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_TEXT_MODEL: ${{ secrets.GEMINI_TEXT_MODEL }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
-          IMAGE_SOURCE_MODE: ${{ secrets.IMAGE_SOURCE_MODE }}
-          POSTS_PER_RUN: ${{ secrets.POSTS_PER_RUN }}
-          LOOKBACK_HOURS: ${{ secrets.LOOKBACK_HOURS }}
-          RENDER_BATCH_SIZE: ${{ secrets.RENDER_BATCH_SIZE }}
-          PUBLISH_BATCH_SIZE: ${{ secrets.PUBLISH_BATCH_SIZE }}
-          PIN_DAY_1: ${{ secrets.PIN_DAY_1 }}
-          PIN_DAY_2: ${{ secrets.PIN_DAY_2 }}
-          PIN_DAY_3: ${{ secrets.PIN_DAY_3 }}
-          BOARD_RECIPES_EN: ${{ secrets.BOARD_RECIPES_EN }}
-          BOARD_RECIPES_FR: ${{ secrets.BOARD_RECIPES_FR }}
-          BOARD_SPREADS_EN: ${{ secrets.BOARD_SPREADS_EN }}
-          BOARD_SPREADS_FR: ${{ secrets.BOARD_SPREADS_FR }}
-          BOARD_SWEETS_TRENDS: ${{ secrets.BOARD_SWEETS_TRENDS }}
-
-      - name: Publish due pins
-        run: npm run publish
+      - name: Run Pinterest cycle
+        run: npm run run
         env:
           SITE_URL: ${{ secrets.SITE_URL }}
           WP_USERNAME: ${{ secrets.WP_USERNAME }}

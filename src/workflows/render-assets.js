@@ -5,7 +5,7 @@ export async function renderPendingAssets({ config, state }) {
   const assets = state.getPendingAssets(config.renderBatchSize);
   if (assets.length === 0) {
     console.log("No pending assets to render.");
-    return;
+    return { renderedCount: 0 };
   }
 
   for (const asset of assets) {
@@ -27,4 +27,5 @@ export async function renderPendingAssets({ config, state }) {
   }
 
   await state.save();
+  return { renderedCount: assets.length };
 }

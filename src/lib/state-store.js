@@ -1,4 +1,4 @@
-﻿import fs from "node:fs/promises";
+import fs from "node:fs/promises";
 import path from "node:path";
 
 export async function createStateStore(config) {
@@ -34,7 +34,11 @@ export async function createStateStore(config) {
     getPendingAssets(limit) {
       return Object.values(this.state.assets)
         .filter((asset) => asset.status === "pending_render")
-        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+        .sort((a, b) => {
+          const aTime = new Date(a.scheduledFor || a.createdAt).getTime();
+          const bTime = new Date(b.scheduledFor || b.createdAt).getTime();
+          return aTime - bTime || a.createdAt.localeCompare(b.createdAt);
+        })
         .slice(0, limit);
     },
     getDueQueueItems(limit) {
@@ -47,6 +51,13 @@ export async function createStateStore(config) {
     },
     getAsset(assetId) {
       return this.state.assets[assetId] || null;
+    },
+    countDueDraftQueueItems() {
+      const now = Date.now();
+      return Object.values(this.state.queue)
+        .filter((item) => item.status === "draft")
+        .filter((item) => new Date(item.scheduledFor).getTime() <= now)
+        .length;
     }
   };
 }
