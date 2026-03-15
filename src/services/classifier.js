@@ -129,7 +129,11 @@ export function classifyPost(post, boards) {
     boardKey = "sweets_trends";
   }
 
-  const shouldPin = pinWorthinessScore >= 2 && !isNonVisualNews;
+  let shouldPin = pinWorthinessScore >= 2 && !isNonVisualNews;
+
+  if (isCategorySpreadFr || isCategorySpreadEn || isCategoryRecipeFr || isCategoryRecipeEn) {
+    shouldPin = !isNonVisualNews;
+  }
 
   return {
     shouldPin,

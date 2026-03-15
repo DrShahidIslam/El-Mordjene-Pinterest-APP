@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Pinterest Autopilot Feed
- * Description: Exposes a custom RSS feed with one item per Pinterest pin variant injected by the autopilot app.
- * Version: 1.0.0
+ * Description: Exposes custom RSS feeds with one item per Pinterest pin variant injected by the autopilot app.
+ * Version: 1.1.4
  * Author: El Mordjene
  */
 
@@ -11,17 +11,19 @@ if (!defined('ABSPATH')) {
 }
 
 const PAF_FEED_SLUG = 'pinterest-autopilot';
-const PAF_FEED_PATH = 'pinterest-feed';
+const PAF_FEED_PATH_BASE = 'pinterest-feed';
 const PAF_ALLOWED_CATEGORIES = ['recipes', 'recettes', 'spreads', 'pates-a-tartiner', 'trends'];
 
 add_action('init', function () {
   add_feed(PAF_FEED_SLUG, 'paf_render_feed');
-  add_rewrite_rule('^' . PAF_FEED_PATH . '/?$', 'index.php?feed=' . PAF_FEED_SLUG, 'top');
+  add_rewrite_rule('^' . PAF_FEED_PATH_BASE . '/?$', 'index.php?feed=' . PAF_FEED_SLUG, 'top');
+  paf_register_category_feeds();
 });
 
 register_activation_hook(__FILE__, function () {
   add_feed(PAF_FEED_SLUG, 'paf_render_feed');
-  add_rewrite_rule('^' . PAF_FEED_PATH . '/?$', 'index.php?feed=' . PAF_FEED_SLUG, 'top');
+  add_rewrite_rule('^' . PAF_FEED_PATH_BASE . '/?$', 'index.php?feed=' . PAF_FEED_SLUG, 'top');
+  paf_register_category_feeds();
   flush_rewrite_rules();
 });
 
@@ -29,8 +31,17 @@ register_deactivation_hook(__FILE__, function () {
   flush_rewrite_rules();
 });
 
+function paf_register_category_feeds() {
+  foreach (PAF_ALLOWED_CATEGORIES as $slug) {
+    $feed = PAF_FEED_SLUG . '-' . $slug;
+    add_feed($feed, 'paf_render_feed');
+    add_rewrite_rule('^' . PAF_FEED_PATH_BASE . '/' . $slug . '/?$', 'index.php?feed=' . $feed, 'top');
+  }
+}
+
 function paf_render_feed() {
-  $items = paf_collect_items();
+  $category = paf_get_requested_category();
+  $items = paf_collect_items($category);
 
   header('Content-Type: application/rss+xml; charset=UTF-8');
 
@@ -38,13 +49,21 @@ function paf_render_feed() {
   $site_title = get_bloginfo('name');
   $now = date(DATE_RFC2822);
 
-  echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-  echo '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">' . "\n";
-  echo "<channel>\n";
-  echo '<title>' . esc_html($site_title . ' Pinterest Feed') . "</title>\n";
-  echo '<link>' . esc_url($site_url) . "</link>\n";
-  echo '<description>' . esc_html('Pinterest pin variants for auto-publishing') . "</description>\n";
-  echo '<lastBuildDate>' . esc_html($now) . "</lastBuildDate>\n";
+  echo '<?xml version="1.0" encoding="UTF-8"?>' . "
+";
+  echo '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">' . "
+";
+  echo "<channel>
+";
+  $title_suffix = $category ? ' - ' . $category : '';
+  echo '<title>' . esc_html($site_title . ' Pinterest Feed' . $title_suffix) . "</title>
+";
+  echo '<link>' . esc_url($site_url) . "</link>
+";
+  echo '<description>' . esc_html('Pinterest pin variants for auto-publishing') . "</description>
+";
+  echo '<lastBuildDate>' . esc_html($now) . "</lastBuildDate>
+";
 
   foreach ($items as $item) {
     $title = $item['title'];
@@ -55,40 +74,70 @@ function paf_render_feed() {
     $guid = $item['guid'];
     $mime = $item['mime'];
 
-    echo "<item>\n";
-    echo '<title>' . esc_html($title) . "</title>\n";
-    echo '<link>' . esc_url($link) . "</link>\n";
-    echo '<guid isPermaLink="false">' . esc_html($guid) . "</guid>\n";
-    echo '<pubDate>' . esc_html($pub_date) . "</pubDate>\n";
-    echo '<description><![CDATA[' . $description . ']]></description>' . "\n";
-    echo '<media:content url="' . esc_url($image) . '" medium="image" />' . "\n";
-    echo '<enclosure url="' . esc_url($image) . '" type="' . esc_attr($mime) . '" />' . "\n";
-    echo "</item>\n";
+    echo "<item>
+";
+    echo '<title>' . esc_html($title) . "</title>
+";
+    echo '<link>' . esc_url($link) . "</link>
+";
+    echo '<guid isPermaLink="false">' . esc_html($guid) . "</guid>
+";
+    echo '<pubDate>' . esc_html($pub_date) . "</pubDate>
+";
+    echo '<description><![CDATA[' . $description . ']]></description>' . "
+";
+    echo '<media:content url="' . esc_url($image) . '" medium="image" />' . "
+";
+    echo '<enclosure url="' . esc_url($image) . '" type="' . esc_attr($mime) . '" />' . "
+";
+    echo "</item>
+";
   }
 
-  echo "</channel>\n";
+  echo "</channel>
+";
   echo "</rss>";
   exit;
 }
 
-function paf_collect_items() {
+function paf_get_requested_category() {
+  $feed = get_query_var('feed');
+  if (!$feed) {
+    return null;
+  }
+  if (strpos($feed, PAF_FEED_SLUG . '-') !== 0) {
+    return null;
+  }
+  $slug = substr($feed, strlen(PAF_FEED_SLUG) + 1);
+  return $slug ?: null;
+}
+
+function paf_collect_items($only_category = null) {
   $max_items = apply_filters('paf_max_items', 200);
   $include_future = apply_filters('paf_include_future', false);
   $now_ts = time();
 
-  $posts = get_posts([
+  $args = [
     'post_type' => 'post',
     'post_status' => 'publish',
-    'posts_per_page' => 50,
+    'posts_per_page' => 200,
     'orderby' => 'date',
-    'order' => 'DESC',
-    's' => 'pinterest-gallery'
-  ]);
+    'order' => 'DESC'
+  ];
 
+  if ($only_category) {
+    $args['category_name'] = $only_category;
+    $args['lang'] = paf_language_for_category($only_category);
+  } else {
+    $args['s'] = 'pinterest-gallery';
+  }
+
+  $posts = get_posts($args);
   $items = [];
 
   foreach ($posts as $post) {
-    if (!paf_post_in_allowed_categories($post->ID)) {
+    $link = get_permalink($post);
+    if (!paf_matches_language_path($only_category, $link)) {
       continue;
     }
 
@@ -117,17 +166,20 @@ function paf_collect_items() {
   return $items;
 }
 
-function paf_post_in_allowed_categories($post_id) {
-  $terms = wp_get_post_terms($post_id, 'category', ['fields' => 'slugs']);
-  if (!is_array($terms) || empty($terms)) {
-    return false;
+function paf_language_for_category($category) {
+  if (in_array($category, ['recettes', 'pates-a-tartiner'], true)) {
+    return 'fr';
   }
-  foreach ($terms as $slug) {
-    if (in_array($slug, PAF_ALLOWED_CATEGORIES, true)) {
-      return true;
-    }
+  return 'en';
+}
+
+function paf_matches_language_path($category, $link) {
+  if (!$category) {
+    return true;
   }
-  return false;
+  $isFrenchCategory = in_array($category, ['recettes', 'pates-a-tartiner'], true);
+  $hasFrPath = strpos($link, '/fr/') !== false;
+  return $isFrenchCategory ? $hasFrPath : !$hasFrPath;
 }
 
 function paf_extract_gallery_items($content, $post) {
@@ -174,8 +226,8 @@ function paf_extract_gallery_items($content, $post) {
       'link' => get_permalink($post),
       'image' => $src,
       'pub_date' => $pub_date,
-      'guid' => $guid,
       'scheduled_ts' => $scheduled_ts,
+      'guid' => $guid,
       'mime' => paf_guess_mime($src)
     ];
   }

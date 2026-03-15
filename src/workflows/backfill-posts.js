@@ -6,7 +6,16 @@ export async function backfillPosts({ config, state, wordpress }) {
   const maxPages = Math.max(config.backfillMaxPages, 1);
 
   for (let page = 1; page <= maxPages && collected.length < targetCount; page += 1) {
-    const posts = await wordpress.fetchPostsPage(page, Math.max(targetCount * 2, 20));
+    let posts = [];
+    try {
+      posts = await wordpress.fetchPostsPage(page, Math.max(targetCount * 2, 20));
+    } catch (error) {
+      const message = String(error?.message || '');
+      if (message.includes("rest_post_invalid_page_number") || message.includes("page number requested is larger")) {
+        break;
+      }
+      throw error;
+    }
     if (posts.length === 0) {
       break;
     }
@@ -14,6 +23,13 @@ export async function backfillPosts({ config, state, wordpress }) {
     for (const post of posts) {
       if (post.status !== "publish" || state.hasPost(post.id)) {
         continue;
+      }
+      if (config.backfillCategorySlugs?.length) {
+        const slugs = (post.categories || []).map((cat) => String(cat.slug).toLowerCase());
+        const wants = config.backfillCategorySlugs.map((slug) => String(slug).toLowerCase());
+        if (!slugs.some((slug) => wants.includes(slug))) {
+          continue;
+        }
       }
 
       collected.push(post);

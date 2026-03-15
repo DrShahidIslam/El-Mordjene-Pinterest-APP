@@ -39,6 +39,7 @@ export function loadConfig() {
     backfillMaxPages: numberFromEnv("BACKFILL_MAX_PAGES", 10),
     backfillStartDelayHours: numberFromEnv("BACKFILL_START_DELAY_HOURS", 24),
     backfillPostIntervalHours: numberFromEnv("BACKFILL_POST_INTERVAL_HOURS", 24),
+    backfillCategorySlugs: listFromEnv("BACKFILL_CATEGORY_SLUGS"),
     queueSpacingDays: {
       first: numberFromEnv("PIN_DAY_1", 0),
       second: numberFromEnv("PIN_DAY_2", 2),
@@ -62,6 +63,14 @@ function required(name) {
   return value;
 }
 
+function listFromEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    return [];
+  }
+  return value.split(",").map((part) => part.trim()).filter(Boolean);
+}
+
 function numberFromEnv(name, fallback) {
   const value = process.env[name]?.trim();
   if (!value) {
@@ -71,6 +80,3 @@ function numberFromEnv(name, fallback) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
-
-
-
