@@ -151,70 +151,45 @@ function buildHeroOverlay(asset, theme, hasPhoto) {
 }
 
 function buildListOverlay(asset, theme, hasPhoto) {
-  const titleLines = wrapText(asset.overlayTitle, 20, 3);
-  const subtitleLines = wrapText(asset.overlaySubtitle, 26, 3);
-  const keywordLabel = wrapText(toDisplayCase(asset.primaryKeyword || asset.overlayTitle), 14, 1);
+  const subtitleLine = wrapText(asset.overlaySubtitle, 26, 1);
+  const titleLines = wrapText(asset.overlayTitle, 14, 4);
+
+  const subtitleSvg = subtitleLine
+    .map((line) => `<text x="500" y="120" text-anchor="middle" font-size="28" font-family="Georgia, serif" fill="#2b1a12" font-weight="600" letter-spacing="2">${escapeHtml(line)}</text>`)
+    .join("");
 
   const titleSvg = titleLines
-    .map((line, index) => `<text x="130" y="${330 + index * 62}" font-size="52" font-family="Georgia, serif" fill="${theme.hero}" font-weight="700">${escapeHtml(line)}</text>`)
-    .join("");
-
-  const subtitleSvg = subtitleLines
-    .map((line, index) => `<text x="130" y="${540 + index * 34}" font-size="24" font-family="Arial, sans-serif" fill="${theme.panelText}" font-weight="700">${escapeHtml(line)}</text>`)
-    .join("");
-
-  const keywordSvg = keywordLabel
-    .map((line, index) => `<text x="145" y="${242 + index * 24}" font-size="18" font-family="Arial, sans-serif" fill="#fffaf2" font-weight="700">${escapeHtml(line)}</text>`)
+    .map((line, index) => `<text x="500" y="${220 + index * 86}" text-anchor="middle" font-size="86" font-family="Arial Black, Arial, sans-serif" fill="#111" font-weight="800">${escapeHtml(line)}</text>`)
     .join("");
 
   return `
     <svg width="1000" height="1500" viewBox="0 0 1000 1500" xmlns="http://www.w3.org/2000/svg">
-      <rect x="70" y="130" width="860" height="1180" rx="36" fill="#fffaf6" opacity="0.78"/>
-      <rect x="100" y="180" width="430" height="1080" rx="30" fill="${theme.panel}" opacity="0.92"/>
-      <rect x="560" y="180" width="330" height="540" rx="28" fill="${hasPhoto ? "rgba(255,250,245,0.02)" : theme.hero}"/>
-      ${hasPhoto ? `<rect x="560" y="180" width="330" height="540" rx="28" fill="rgba(64,32,18,0.04)"/>` : `<circle cx="740" cy="320" r="120" fill="#ffffff" opacity="0.12"/>`}
-      <rect x="120" y="210" width="210" height="50" rx="18" fill="${theme.accent}" opacity="0.95"/>
-      ${keywordSvg}
-      ${titleSvg}
+      <rect width="1000" height="1500" fill="rgba(255,255,255,0.02)"/>
+      <rect x="180" y="85" width="160" height="2" fill="#2b1a12" opacity="0.5"/>
+      <rect x="660" y="85" width="160" height="2" fill="#2b1a12" opacity="0.5"/>
       ${subtitleSvg}
-      <rect x="120" y="1120" width="360" height="60" rx="30" fill="${theme.accent}"/>
-      <text x="300" y="1158" text-anchor="middle" font-size="24" font-family="Arial, sans-serif" fill="#fff8f0" font-weight="700">Save for later</text>
-      <rect x="560" y="780" width="330" height="430" rx="28" fill="${theme.panel}" opacity="0.85"/>
-      <text x="725" y="840" text-anchor="middle" font-size="24" font-family="Arial, sans-serif" fill="${theme.panelText}" font-weight="700">Read more</text>
-      <text x="725" y="875" text-anchor="middle" font-size="22" font-family="Arial, sans-serif" fill="${theme.panelText}">el-mordjene.info</text>
+      ${titleSvg}
     </svg>
   `;
 }
-
 function buildGuideOverlay(asset, theme, hasPhoto) {
-  const titleLines = wrapText(asset.overlayTitle, 24, 3);
-  const subtitleLines = wrapText(asset.overlaySubtitle, 30, 2);
-  const keywordLabel = wrapText(toDisplayCase(asset.primaryKeyword || asset.overlayTitle), 16, 1);
+  const titleLines = wrapText(asset.overlayTitle, 18, 2);
+  const subtitleLines = wrapText(asset.overlaySubtitle, 26, 1);
 
   const titleSvg = titleLines
-    .map((line, index) => `<text x="500" y="${520 + index * 64}" text-anchor="middle" font-size="56" font-family="Georgia, serif" fill="${theme.hero}" font-weight="700">${escapeHtml(line)}</text>`)
+    .map((line, index) => `<text x="500" y="${780 + index * 70}" text-anchor="middle" font-size="64" font-family="Georgia, serif" fill="#fff6ef" font-weight="700">${escapeHtml(line)}</text>`)
     .join("");
 
   const subtitleSvg = subtitleLines
-    .map((line, index) => `<text x="500" y="${980 + index * 32}" text-anchor="middle" font-size="24" font-family="Arial, sans-serif" fill="${theme.panelText}" font-weight="700">${escapeHtml(line)}</text>`)
-    .join("");
-
-  const keywordSvg = keywordLabel
-    .map((line, index) => `<text x="500" y="${252 + index * 26}" text-anchor="middle" font-size="20" font-family="Arial, sans-serif" fill="#fffaf2" font-weight="700">${escapeHtml(line)}</text>`)
+    .map((line) => `<text x="500" y="${920}" text-anchor="middle" font-size="30" font-family="Arial, sans-serif" fill="#fff6ef" font-weight="600">${escapeHtml(line)}</text>`)
     .join("");
 
   return `
     <svg width="1000" height="1500" viewBox="0 0 1000 1500" xmlns="http://www.w3.org/2000/svg">
-      <rect x="100" y="120" width="800" height="1200" rx="40" fill="#fffaf6" opacity="0.75"/>
-      <rect x="140" y="170" width="720" height="80" rx="24" fill="${theme.accent}" opacity="0.95"/>
-      ${keywordSvg}
-      <rect x="160" y="320" width="680" height="520" rx="36" fill="${hasPhoto ? "rgba(255,250,245,0.02)" : theme.hero}"/>
-      ${hasPhoto ? `<rect x="160" y="320" width="680" height="520" rx="36" fill="rgba(64,32,18,0.05)"/>` : `<circle cx="700" cy="420" r="130" fill="#ffffff" opacity="0.10"/><circle cx="320" cy="700" r="110" fill="#ffffff" opacity="0.08"/>`}
+      <rect x="0" y="700" width="1000" height="320" fill="#8f1f28" opacity="0.95"/>
       ${titleSvg}
-      <rect x="170" y="900" width="660" height="150" rx="30" fill="${theme.panel}" opacity="0.9"/>
       ${subtitleSvg}
-      <rect x="230" y="1120" width="540" height="64" rx="32" fill="${theme.accent}"/>
-      <text x="500" y="1160" text-anchor="middle" font-size="24" font-family="Arial, sans-serif" fill="#fff8f0" font-weight="700">Read the full guide</text>
+      <text x="500" y="980" text-anchor="middle" font-size="28" font-family="Georgia, serif" fill="#fff6ef" font-weight="600">el-mordjene.info</text>
     </svg>
   `;
 }
