@@ -38,11 +38,11 @@ const VARIANT_LABELS = {
 
 export async function renderAsset(asset, config) {
   const theme = THEMES[asset.contentType] || THEMES.trend;
-  const fileName = `${asset.postSlug}-${asset.variant}.webp`;
+  const fileName = `${asset.postSlug || asset.postId}-${asset.variant}.jpg`;
   const hasFeaturedImage = Boolean(asset.imageSourceUrl || asset.featuredImage);
-  const quality = hasFeaturedImage ? 68 : 74;
+  const quality = hasFeaturedImage ? 85 : 88;
   const effort = 6;
-  const outputPath = path.join(config.assetsDir, fileName);
+  const outputPath = path.join(config.assetsDir, "pinterest", fileName);
   const base = sharp({
     create: {
       width: 1000,
@@ -61,7 +61,7 @@ export async function renderAsset(asset, config) {
         .resize(1000, 1500, { fit: "cover", position: "attention" })
         .blur(2)
         .modulate({ saturation: 1.05, brightness: 0.95 })
-        .webp({ quality: 70, effort: 5 })
+        .jpeg({ quality: 82, mozjpeg: true })
         .toBuffer(),
       top: 0,
       left: 0
@@ -77,7 +77,7 @@ export async function renderAsset(asset, config) {
       input: await sharp(visualBuffer)
         .resize(740, 520, { fit: "cover", position: "attention" })
         .modulate({ saturation: 1.08, brightness: 1.02 })
-        .webp({ quality: 70, effort: 5 })
+        .jpeg({ quality: 84, mozjpeg: true })
         .toBuffer(),
       top: 180,
       left: 130
@@ -93,8 +93,8 @@ export async function renderAsset(asset, config) {
   const svg = buildOverlaySvg(asset, theme, Boolean(visualBuffer));
   composites.push({ input: Buffer.from(svg), top: 0, left: 0 });
 
-  await fs.mkdir(config.assetsDir, { recursive: true });
-  await base.composite(composites).webp({ quality, effort }).toFile(outputPath);
+  await fs.mkdir(path.join(config.assetsDir, "pinterest"), { recursive: true });
+  await base.composite(composites).jpeg({ quality, mozjpeg: true }).toFile(outputPath);
   return outputPath;
 }
 
@@ -223,6 +223,8 @@ function toDisplayCase(value) {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 }
+
+
 
 
 

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pinterest Autopilot Feed
  * Description: Exposes custom RSS feeds with one item per Pinterest pin variant injected by the autopilot app.
- * Version: 1.1.4
+ * Version: 1.1.5
  * Author: El Mordjene
  */
 
@@ -73,6 +73,7 @@ function paf_render_feed() {
     $pub_date = $item['pub_date'];
     $guid = $item['guid'];
     $mime = $item['mime'];
+    $desc_with_image = '<img src="' . esc_url($image) . '" /> ' . $description;
 
     echo "<item>
 ";
@@ -84,9 +85,11 @@ function paf_render_feed() {
 ";
     echo '<pubDate>' . esc_html($pub_date) . "</pubDate>
 ";
-    echo '<description><![CDATA[' . $description . ']]></description>' . "
+    echo '<description><![CDATA[' . $desc_with_image . ']]></description>' . "
 ";
-    echo '<media:content url="' . esc_url($image) . '" medium="image" />' . "
+    echo '<media:content url="' . esc_url($image) . '" medium="image" type="' . esc_attr($mime) . '" />' . "
+";
+    echo '<media:thumbnail url="' . esc_url($image) . '" />' . "
 ";
     echo '<enclosure url="' . esc_url($image) . '" type="' . esc_attr($mime) . '" />' . "
 ";
@@ -250,3 +253,4 @@ function paf_guess_mime($url) {
       return 'image/jpeg';
   }
 }
+

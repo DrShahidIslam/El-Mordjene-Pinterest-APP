@@ -1,4 +1,4 @@
-ï»¿import fs from "node:fs/promises";
+import fs from "node:fs/promises";
 import { stripHtml } from "../lib/text.js";
 
 const GALLERY_MARKER = "<!-- pinterest-gallery -->";
@@ -61,7 +61,7 @@ export function createWordPressClient(config) {
         headers: {
           Authorization: buildAuthHeader(config),
           "User-Agent": config.wpUserAgent,
-          "Content-Type": "image/webp",
+          "Content-Type": "image/jpeg",
           "Content-Disposition": `attachment; filename="${filename}"`
         },
         body: fileBuffer
@@ -256,7 +256,7 @@ function inferLanguage(post, categories, title, excerpt, contentHtml) {
     }
   }
 
-  if (/[Ã©Ã¨ÃªÃ Ã¹Ã§Ã´Ã®]/i.test(`${title} ${excerpt}`)) {
+  if (/[éèêàùçôî]/i.test(`${title} ${excerpt}`)) {
     frenchScore += 2;
   }
 
@@ -270,6 +270,7 @@ function escapeAttribute(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 }
+
 
 
 
