@@ -117,7 +117,7 @@ function buildHeroOverlay(asset, theme, hasPhoto) {
 
   const titleSvg = titleLines
     .map((line, index) => {
-      const y = hasPhoto ? 780 + index * 60 : 330 + index * 90;
+      const y = hasPhoto ? 740 + index * 60 : 330 + index * 90;
       const fill = hasPhoto ? theme.hero : "#fff8f1";
       return `<text x="170" y="${y}" font-size="56" font-family="Georgia, serif" fill="${fill}" font-weight="700">${escapeHtml(line)}</text>`;
     })
@@ -125,7 +125,7 @@ function buildHeroOverlay(asset, theme, hasPhoto) {
 
   const subtitleSvg = subtitleLines
     .map((line, index) => {
-      const y = 930 + index * 30;
+      const y = 920 + index * 30;
       return `<text x="170" y="${y}" font-size="26" font-family="Arial, sans-serif" fill="${theme.panelText}" font-weight="700">${escapeHtml(line)}</text>`;
     })
     .join("");
@@ -141,7 +141,7 @@ function buildHeroOverlay(asset, theme, hasPhoto) {
       ${hasPhoto ? `<rect x="130" y="180" width="740" height="520" rx="28" fill="rgba(64,32,18,0.01)"/>` : `<circle cx="770" cy="220" r="170" fill="#ffffff" opacity="0.10"/><circle cx="250" cy="560" r="120" fill="#ffffff" opacity="0.08"/>`}
       <rect x="140" y="170" width="260" height="58" rx="20" fill="${theme.accent}" opacity="0.92"/>
       ${keywordSvg}
-      <rect x="130" y="720" width="740" height="280" rx="28" fill="${theme.panel}" opacity="0.75"/>
+      <rect x="130" y="670" width="740" height="360" rx="28" fill="${theme.panel}" opacity="0.75"/>
       ${titleSvg}
       ${subtitleSvg}
       <rect x="170" y="1060" width="660" height="52" rx="26" fill="${theme.accent}"/>
@@ -152,14 +152,17 @@ function buildHeroOverlay(asset, theme, hasPhoto) {
 
 function buildListOverlay(asset, theme, hasPhoto) {
   const subtitleLine = wrapText(asset.overlaySubtitle, 26, 1);
-  const titleLines = wrapText(asset.overlayTitle, 14, 4);
+  const titleLines = wrapText(asset.overlayTitle, 20, 4);
 
   const subtitleSvg = subtitleLine
     .map((line) => `<text x="500" y="120" text-anchor="middle" font-size="28" font-family="Georgia, serif" fill="#2b1a12" font-weight="600" letter-spacing="2">${escapeHtml(line)}</text>`)
     .join("");
 
+  const boxHeight = titleLines.length * 70 + 40;
+  const startY = 440 - ((titleLines.length - 1) * 70) / 2 + 20;
+
   const titleSvg = titleLines
-    .map((line, index) => `<text x="500" y="${220 + index * 86}" text-anchor="middle" font-size="86" font-family="Arial Black, Arial, sans-serif" fill="#111" font-weight="800">${escapeHtml(line)}</text>`)
+    .map((line, index) => `<text x="500" y="${startY + index * 70}" text-anchor="middle" font-size="60" font-family="Arial Black, Arial, sans-serif" fill="#111" font-weight="800">${escapeHtml(line)}</text>`)
     .join("");
 
   return `
@@ -168,6 +171,7 @@ function buildListOverlay(asset, theme, hasPhoto) {
       <rect x="180" y="85" width="160" height="2" fill="#2b1a12" opacity="0.5"/>
       <rect x="660" y="85" width="160" height="2" fill="#2b1a12" opacity="0.5"/>
       ${subtitleSvg}
+      <rect x="160" y="${440 - boxHeight / 2}" width="680" height="${boxHeight}" rx="24" fill="rgba(255,255,255,0.92)"/>
       ${titleSvg}
     </svg>
   `;
@@ -177,7 +181,7 @@ function buildGuideOverlay(asset, theme, hasPhoto) {
   const subtitleLines = wrapText(asset.overlaySubtitle, 26, 1);
 
   const titleSvg = titleLines
-    .map((line, index) => `<text x="500" y="${780 + index * 70}" text-anchor="middle" font-size="64" font-family="Georgia, serif" fill="#fff6ef" font-weight="700">${escapeHtml(line)}</text>`)
+    .map((line, index) => `<text x="500" y="${770 + index * 70}" text-anchor="middle" font-size="64" font-family="Georgia, serif" fill="#fff6ef" font-weight="700">${escapeHtml(line)}</text>`)
     .join("");
 
   const subtitleSvg = subtitleLines
@@ -186,10 +190,10 @@ function buildGuideOverlay(asset, theme, hasPhoto) {
 
   return `
     <svg width="1000" height="1500" viewBox="0 0 1000 1500" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0" y="700" width="1000" height="320" fill="#8f1f28" opacity="0.95"/>
+      <rect x="0" y="680" width="1000" height="360" fill="#8f1f28" opacity="0.95"/>
       ${titleSvg}
       ${subtitleSvg}
-      <text x="500" y="980" text-anchor="middle" font-size="28" font-family="Georgia, serif" fill="#fff6ef" font-weight="600">el-mordjene.info</text>
+      <text x="500" y="990" text-anchor="middle" font-size="28" font-family="Georgia, serif" fill="#fff6ef" font-weight="600">el-mordjene.info</text>
     </svg>
   `;
 }
