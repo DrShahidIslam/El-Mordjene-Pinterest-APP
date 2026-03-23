@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pinterest Autopilot Feed
  * Description: Exposes custom RSS feeds with one item per Pinterest pin variant injected by the autopilot app.
- * Version: 1.1.5
+ * Version: 1.1.6
  * Author: El Mordjene
  */
 
@@ -13,6 +13,12 @@ if (!defined('ABSPATH')) {
 const PAF_FEED_SLUG = 'pinterest-autopilot';
 const PAF_FEED_PATH_BASE = 'pinterest-feed';
 const PAF_ALLOWED_CATEGORIES = ['recipes', 'recettes', 'spreads', 'pates-a-tartiner', 'trends'];
+
+// Temporary recovery mode for Pinterest ingestion issues.
+const PAF_SAFE_MODE = true;
+const PAF_SAFE_MAX_ITEMS = 20;
+const PAF_SAFE_LOOKBACK_DAYS = 7;
+const PAF_SAFE_ALLOWED_VARIANTS = ['hero'];
 
 add_action('init', function () {
   add_feed(PAF_FEED_SLUG, 'paf_render_feed');
@@ -49,21 +55,14 @@ function paf_render_feed() {
   $site_title = get_bloginfo('name');
   $now = date(DATE_RFC2822);
 
-  echo '<?xml version="1.0" encoding="UTF-8"?>' . "
-";
-  echo '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">' . "
-";
-  echo "<channel>
-";
+  echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+  echo '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">' . "\n";
+  echo "<channel>\n";
   $title_suffix = $category ? ' - ' . $category : '';
-  echo '<title>' . esc_html($site_title . ' Pinterest Feed' . $title_suffix) . "</title>
-";
-  echo '<link>' . esc_url($site_url) . "</link>
-";
-  echo '<description>' . esc_html('Pinterest pin variants for auto-publishing') . "</description>
-";
-  echo '<lastBuildDate>' . esc_html($now) . "</lastBuildDate>
-";
+  echo '<title>' . esc_html($site_title . ' Pinterest Feed' . $title_suffix) . "</title>\n";
+  echo '<link>' . esc_url($site_url) . "</link>\n";
+  echo '<description>' . esc_html('Pinterest pin variants for auto-publishing') . "</description>\n";
+  echo '<lastBuildDate>' . esc_html($now) . "</lastBuildDate>\n";
 
   foreach ($items as $item) {
     $title = $item['title'];
@@ -75,30 +74,19 @@ function paf_render_feed() {
     $mime = $item['mime'];
     $desc_with_image = '<img src="' . esc_url($image) . '" /> ' . $description;
 
-    echo "<item>
-";
-    echo '<title>' . esc_html($title) . "</title>
-";
-    echo '<link>' . esc_url($link) . "</link>
-";
-    echo '<guid isPermaLink="false">' . esc_html($guid) . "</guid>
-";
-    echo '<pubDate>' . esc_html($pub_date) . "</pubDate>
-";
-    echo '<description><![CDATA[' . $desc_with_image . ']]></description>' . "
-";
-    echo '<media:content url="' . esc_url($image) . '" medium="image" type="' . esc_attr($mime) . '" />' . "
-";
-    echo '<media:thumbnail url="' . esc_url($image) . '" />' . "
-";
-    echo '<enclosure url="' . esc_url($image) . '" type="' . esc_attr($mime) . '" />' . "
-";
-    echo "</item>
-";
+    echo "<item>\n";
+    echo '<title>' . esc_html($title) . "</title>\n";
+    echo '<link>' . esc_url($link) . "</link>\n";
+    echo '<guid isPermaLink="false">' . esc_html($guid) . "</guid>\n";
+    echo '<pubDate>' . esc_html($pub_date) . "</pubDate>\n";
+    echo '<description><![CDATA[' . $desc_with_image . ']]></description>' . "\n";
+    echo '<media:content url="' . esc_url($image) . '" medium="image" type="' . esc_attr($mime) . '" />' . "\n";
+    echo '<media:thumbnail url="' . esc_url($image) . '" />' . "\n";
+    echo '<enclosure url="' . esc_url($image) . '" type="' . esc_attr($mime) . '" />' . "\n";
+    echo "</item>\n";
   }
 
-  echo "</channel>
-";
+  echo "</channel>\n";
   echo "</rss>";
   exit;
 }
@@ -116,9 +104,12 @@ function paf_get_requested_category() {
 }
 
 function paf_collect_items($only_category = null) {
-  $max_items = apply_filters('paf_max_items', 200);
+  $safe_mode = paf_is_safe_mode();
+  $max_items = apply_filters('paf_max_items', $safe_mode ? PAF_SAFE_MAX_ITEMS : 200);
   $include_future = apply_filters('paf_include_future', false);
+  $lookback_days = apply_filters('paf_lookback_days', $safe_mode ? PAF_SAFE_LOOKBACK_DAYS : 3650);
   $now_ts = time();
+  $min_ts = strtotime('-' . intval($lookback_days) . ' days', $now_ts);
 
   $args = [
     'post_type' => 'post',
@@ -151,6 +142,9 @@ function paf_collect_items($only_category = null) {
 
     foreach (paf_extract_gallery_items($content, $post) as $entry) {
       $scheduled_ts = $entry['scheduled_ts'];
+      if ($scheduled_ts < $min_ts) {
+        continue;
+      }
       if (!$include_future && $scheduled_ts > $now_ts) {
         continue;
       }
@@ -202,18 +196,32 @@ function paf_extract_gallery_items($content, $post) {
 
   foreach ($nodes as $node) {
     $src = $node->getAttribute('src');
-    if (!$src) {
+    if (!$src || !paf_is_valid_image_url($src)) {
       continue;
+    }
+
+    if (paf_is_safe_mode()) {
+      $variant = strtolower(trim($node->getAttribute('data-pin-variant')));
+      if (!$variant || !in_array($variant, PAF_SAFE_ALLOWED_VARIANTS, true)) {
+        continue;
+      }
     }
 
     $title = $node->getAttribute('data-pin-title');
     if (!$title) {
       $title = $node->getAttribute('alt');
     }
+    $title = paf_sanitize_pin_text($title, 100);
+    if (!$title) {
+      continue;
+    }
+
     $description = $node->getAttribute('data-pin-description');
     if (!$description) {
       $description = $title;
     }
+    $description = paf_sanitize_pin_text($description, 320);
+
     $scheduled = $node->getAttribute('data-pin-scheduled');
     $scheduled_ts = $scheduled ? strtotime($scheduled) : strtotime($post->post_date_gmt ?: $post->post_date);
     if (!$scheduled_ts) {
@@ -252,5 +260,45 @@ function paf_guess_mime($url) {
     default:
       return 'image/jpeg';
   }
+}
+
+function paf_is_safe_mode() {
+  return (bool) apply_filters('paf_safe_mode', PAF_SAFE_MODE);
+}
+
+function paf_is_valid_image_url($url) {
+  if (!wp_http_validate_url($url)) {
+    return false;
+  }
+
+  $path = parse_url($url, PHP_URL_PATH);
+  $ext = $path ? strtolower(pathinfo($path, PATHINFO_EXTENSION)) : '';
+  return in_array($ext, ['jpg', 'jpeg', 'png'], true);
+}
+
+function paf_sanitize_pin_text($text, $max_length) {
+  $decoded = html_entity_decode((string) $text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+  $decoded = wp_strip_all_tags($decoded);
+  $decoded = remove_accents($decoded);
+
+  // Remove common malformed numeric/entity artifacts and low-trust marketing filler.
+  $decoded = preg_replace('/\b(?:8217|8211|8220|8221|038|039)\b/', '', $decoded);
+  $decoded = str_ireplace([
+    'click-worthy angle',
+    'more tempting way to explore the full post',
+    'save this pin for a quick',
+    'with a click-worthy angle'
+  ], '', $decoded);
+
+  // Drop mojibake remnants that often appear when source text had bad encoding.
+  $decoded = preg_replace('/[\x{00C2}\x{00C3}\x{FFFD}]/u', '', $decoded);
+  $decoded = preg_replace('/\s+/', ' ', trim($decoded));
+
+  if (strlen($decoded) > $max_length) {
+    $decoded = substr($decoded, 0, $max_length);
+    $decoded = rtrim($decoded, " ,;:-");
+  }
+
+  return $decoded;
 }
 
