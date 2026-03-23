@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pinterest Autopilot Feed
  * Description: Exposes custom RSS feeds with one item per Pinterest pin variant injected by the autopilot app.
- * Version: 1.1.6
+ * Version: 1.1.7
  * Author: El Mordjene
  */
 
@@ -211,14 +211,20 @@ function paf_extract_gallery_items($content, $post) {
     if (!$title) {
       $title = $node->getAttribute('alt');
     }
+
+    if (paf_is_safe_mode()) {
+      $title = get_the_title($post->ID);
+      $description = 'Discover this trending post and read the full article for details.';
+    } else {
+      $description = $node->getAttribute('data-pin-description');
+      if (!$description) {
+        $description = $title;
+      }
+    }
+
     $title = paf_sanitize_pin_text($title, 100);
     if (!$title) {
       continue;
-    }
-
-    $description = $node->getAttribute('data-pin-description');
-    if (!$description) {
-      $description = $title;
     }
     $description = paf_sanitize_pin_text($description, 320);
 
@@ -301,4 +307,5 @@ function paf_sanitize_pin_text($text, $max_length) {
 
   return $decoded;
 }
+
 
