@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 
 const DEFAULT_BOARDS = {
   recipes_en: "Recipes",
@@ -10,6 +10,7 @@ const DEFAULT_BOARDS = {
 
 export function loadConfig() {
   const siteUrl = required("SITE_URL");
+  const publishMode = normalizePublishMode(process.env.PUBLISH_MODE);
 
   return {
     siteUrl,
@@ -21,6 +22,7 @@ export function loadConfig() {
     pexelsApiKey: process.env.PEXELS_API_KEY?.trim() || "",
     pixabayApiKey: process.env.PIXABAY_API_KEY?.trim() || "",
     imageSourceMode: process.env.IMAGE_SOURCE_MODE?.trim() || "featured-first",
+    publishMode,
     lookbackHours: numberFromEnv("LOOKBACK_HOURS", 48),
     postsPerRun: numberFromEnv("POSTS_PER_RUN", 6),
     renderBatchSize: numberFromEnv("RENDER_BATCH_SIZE", 9),
@@ -79,4 +81,9 @@ function numberFromEnv(name, fallback) {
 
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normalizePublishMode(value) {
+  const mode = String(value || "csv").trim().toLowerCase();
+  return mode === "rss" ? "rss" : "csv";
 }

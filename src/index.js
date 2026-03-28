@@ -8,6 +8,7 @@ import { renderPendingAssets } from "./workflows/render-assets.js";
 import { publishDueQueue } from "./workflows/publish-queue.js";
 import { runBotCycle } from "./workflows/run-cycle.js";
 import { printStatus } from "./workflows/print-status.js";
+import { printLatestExport } from "./workflows/print-latest-export.js";
 import { reclassifyState } from "./workflows/reclassify-state.js";
 import { refreshPinterestGalleries } from "./workflows/refresh-galleries.js";
 
@@ -60,6 +61,11 @@ async function main() {
 
   if (command === "status") {
     await printStatus({ state });
+    return;
+  }
+
+  if (command === "latest-export") {
+    await printLatestExport({ config });
     return;
   }
 
